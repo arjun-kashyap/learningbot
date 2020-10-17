@@ -20,9 +20,10 @@ public class AnsweringMachine {
     public List<Answer> getAnswer (Question question) {
         List<Answer> answerList = null;
         String sql = "select a.answer_id id, answer " +
-                "from question q, answer a " +
-                "where q.question=? " +
-                "and a.answer_id=q.answer_id";
+                "from question q, answer a, question_answer_relation r " +
+                "where q.question_id = r.question_id " +
+                "and r.answer_id=a.answer_id " +
+                "and q.question=?";
 
         if (question.isQuestion()) {
             answerList = jtm.query(sql, new Object[]{question.getQuestion()}, new RowMapper<Answer>() {
