@@ -27,6 +27,16 @@ function getAnswer() {
     xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xmlhttp.send(JSON.stringify({"questionString":question}));
 }
+
+function upvoteAnswer() {
+    alert("You think this answer is good");
+}
+
+function getAnotherAnswer() {
+    alert("You want another answer");
+}
+
+
 </script>
 
 <div>
@@ -50,7 +60,9 @@ function getAnswer() {
             </td>
         </tr>
         <tr>
-            <td style="text-align: right;"><input type="button" id="submit" onclick="getAnswer()" value="Submit"></td>
+            <td style="text-align: right;"><input type="button" id="submit" onclick="getAnswer()" value="Submit">
+                <input type="button" id="upvote" onclick="upvoteAnswer()" value="This answer is good">
+                <input type="button" id="nextAnswer" onclick="getAnotherAnswer()" value="Give me another answer"></td>
         </tr>
         </tbody>
     </table>
