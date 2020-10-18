@@ -3,45 +3,28 @@ package com.example.demo.Entity;
 import java.io.Serializable;
 
 public class Answer implements Serializable {
-    private int id;
-    private String answer;
-    private int rank;
+    private int answerId;
+    private String answerString;
 
-    public Answer() {
+    public int getAnswerId() {
+        return answerId;
     }
 
-    public Answer(int id, String answer) {
-        this.id = id;
-        this.answer = answer;
+    public void setAnswerId(int answerId) {
+        this.answerId = answerId;
     }
 
-    public int getId() {
-        return id;
+    public String getAnswerString() {
+        return answerString;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
-
-    public int getRank() {
-        return rank;
-    }
-
-    public void setRank(int rank) {
-        this.rank = rank;
+    public void setAnswerString(String answerString) {
+        this.answerString = answerString;
     }
 
     @Override
     public int hashCode() {
-        return (int) id * answer.hashCode();
+        return (int) answerId * answerString.hashCode();
     }
 
     @Override
@@ -50,12 +33,12 @@ public class Answer implements Serializable {
         if (obj == null) return false;
         if (this.getClass() != obj.getClass()) return false;
         Answer otherAnswer = (Answer) obj;
-        return id == otherAnswer.id && answer.equals(otherAnswer.answer);
+        return answerId == otherAnswer.answerId && answerString.equals(otherAnswer.answerString);
     }
 
     @Override
     public String toString() {
-        return "id: " + id + ", answer: " + answer;
+        return "id: " + answerId + ", answer: " + answerString;
     }
 
 }

@@ -9,7 +9,6 @@ import edu.stanford.nlp.trees.LabeledScoredConstituentFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +34,7 @@ public class QuestionProcessor {
 
     public Question processQuestion(Question question) {
         // build annotation for a review
-        Annotation annotation = new Annotation(question.getQuestion());
+        Annotation annotation = new Annotation(question.getQuestionString());
         pipeline.annotate(annotation);
         // get tree
         Tree tree =
@@ -50,7 +49,7 @@ public class QuestionProcessor {
             }
         }
         Question processedQuestion = new Question();
-        processedQuestion.setQuestion(question.getQuestion());
+        processedQuestion.setQuestionString(question.getQuestionString());
         processedQuestion.setTree(tree.toString());
         if (processedQuestion.getTree().contains("SBARQ")|processedQuestion.getTree().contains("SQ")) {
             processedQuestion.setIsQuestion(true);

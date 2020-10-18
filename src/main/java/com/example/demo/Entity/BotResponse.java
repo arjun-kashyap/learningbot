@@ -5,7 +5,7 @@ import java.util.List;
 public class BotResponse {
     private Answer topAnswer;
     private Question questionDecomposed;
-    private List<Answer> otherAnswersList;
+    private List<Match> matchList;
 
     public Answer getTopAnswer() {
         return topAnswer;
@@ -23,11 +23,11 @@ public class BotResponse {
         this.questionDecomposed = questionDecomposed;
     }
 
-    public List<Answer> getOtherAnswersList() {
-        return otherAnswersList;
+    public List<Match> getMatchList() {
+        return matchList;
     }
 
-    public void setOtherAnswersList(List<Answer> otherAnswersList) {
-        this.otherAnswersList = otherAnswersList;
+    public void setMatchList(List<Match> matchList) {
+        this.matchList = matchList;
     }
 }

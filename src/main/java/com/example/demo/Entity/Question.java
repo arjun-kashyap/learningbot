@@ -5,22 +5,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class Question implements Serializable {
-    private String question;
+    private int questionId;
+    private String questionString;
     @JsonProperty
     private boolean isQuestion;
     private String noun;
     private String verb;
     private String tree;
 
-    public String getQuestion() {
-        return question;
+    public int getQuestionId() {
+        return questionId;
     }
 
-    public void setQuestion(String question) {
-        this.question = question;
+    public void setQuestionId(int questionId) {
+        this.questionId = questionId;
     }
 
-    public boolean isQuestion() {
+    public String getQuestionString() {
+        return questionString;
+    }
+
+    public void setQuestionString(String questionString) {
+        this.questionString = questionString;
+    }
+
+    public boolean getIsQuestion() {
         return isQuestion;
     }
 
@@ -52,4 +61,11 @@ public class Question implements Serializable {
         this.tree = tree;
     }
 
+    @Override
+    public String toString() {
+        return "Question{" +
+                "questionId=" + questionId +
+                ", question='" + questionString + '\'' +
+                '}';
+    }
 }
