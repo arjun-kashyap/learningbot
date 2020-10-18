@@ -17,7 +17,7 @@ function getAnswer() {
     xmlhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             response = JSON.parse(this.responseText);
-            document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answer + "\n";
+            document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
             document.getElementById("debug").value = JSON.stringify(response, null, 2);
             document.getElementById("submit").value = "Submit";
             document.getElementById("submit").disabled = false;
@@ -25,7 +25,7 @@ function getAnswer() {
     };
     xmlhttp.open("POST", "postQuestion", true);
     xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xmlhttp.send(JSON.stringify({"question":question}));
+    xmlhttp.send(JSON.stringify({"questionString":question}));
 }
 </script>
 

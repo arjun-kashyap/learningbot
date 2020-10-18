@@ -8,29 +8,18 @@ import edu.stanford.nlp.trees.Constituent;
 import edu.stanford.nlp.trees.LabeledScoredConstituentFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.util.Properties;
 import java.util.Set;
 
 @Component
-public class QuestionProcessor {
+public class QuestionProcessor implements InitializingBean {
     @Autowired
     private Environment env;
     private StanfordCoreNLP pipeline;
-
-    @PostConstruct
-    public void init(){
-        Properties props = new Properties();
-        props.setProperty("annotators", env.getProperty("corenlp.annotators"));
-        // use faster shift reduce parser
-        props.setProperty("parse.model", env.getProperty("corenlp.parse.model"));
-        props.setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
-        pipeline = new StanfordCoreNLP(props);
-    }
 
     public Question processQuestion(Question question) {
         // build annotation for a review
@@ -58,5 +47,15 @@ public class QuestionProcessor {
             processedQuestion.setIsQuestion(false);
         }
         return processedQuestion;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Properties props = new Properties();
+        props.setProperty("annotators", env.getProperty("corenlp.annotators"));
+        // use faster shift reduce parser
+        props.setProperty("parse.model", env.getProperty("corenlp.parse.model"));
+        props.setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
+        pipeline = new StanfordCoreNLP(props);
     }
 }
