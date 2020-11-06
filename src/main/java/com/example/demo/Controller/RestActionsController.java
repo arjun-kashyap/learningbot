@@ -4,6 +4,7 @@ import com.example.demo.Entity.BotResponse;
 import com.example.demo.Entity.Match;
 import com.example.demo.Entity.Question;
 import com.example.demo.process.AnsweringMachine;
+import com.example.demo.process.QuestionIndexer;
 import com.example.demo.process.QuestionProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,8 @@ public class RestActionsController {
     private AnsweringMachine answeringMachine;
     @Autowired
     private QuestionProcessor questionProcessor;
+    @Autowired
+    private QuestionIndexer questionIndexer;
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")

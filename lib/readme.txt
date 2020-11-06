@@ -1,2 +1,2 @@
-Download x.jar and put it in this directory
-stanford-english-corenlp-2018-02-27-models.jar
+Download stanford-english-corenlp-models-current.jar (or stanford-english-corenlp-2018-02-27-models.jar and remane it to stanford-english-corenlp-models-current.jar)
+and place it in this directory. Not keeping it here due to github's 100MB file size limitation

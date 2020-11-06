@@ -29,19 +29,19 @@ public class HelloLucene {
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
 
         IndexWriter w = new IndexWriter(index, config);
-        addDoc(w, "Lucene in Action", 193398817);
-        addDoc(w, "Lucene for Dummies", 55320055);
-        addDoc(w, "Managing Gigabytes", 55063554);
-        addDoc(w, "The Art of Computer Science", 9900333);
-        addDoc(w, "Manage", 99003333);
+        addDoc(w, "Lucene in Action", "Suresh", 193398817);
+        addDoc(w, "Lucene for Dummies", "Lucene for Dummies",55320055);
+        addDoc(w, "Managing Gigabytes", "Managing Gigabytes", 55063554);
+        addDoc(w, "The Art of Computer Science", "The Art of Computer Science", 9900333);
+        addDoc(w, "Manage", "Manage", 99003333);
         w.close();
 
         // 2. query
-        String querystr = args.length > 0 ? args[0] : "lucene";
+        String querystr = args.length > 0 ? args[0] : "questionPos:lucene in action, questionPos2:suresh";
 
         // the "title" arg specifies the default field to use
         // when no field is explicitly specified in the query.
-        Query q = new QueryParser("question", analyzer).parse(querystr);
+        Query q = new QueryParser("questionPos", analyzer).parse(querystr);
 
         // 3. search
         int hitsPerPage = 10;
@@ -56,17 +56,15 @@ public class HelloLucene {
         for(int i=0;i<hits.length;++i) {
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
-            System.out.println((i + 1) + ". " + d.get("questionId") + "\t" + d.get("question"));
+            System.out.println((i + 1) + ". " + d.get("questionId") + "\t" + d.get("questionPos")+" "+hits[i].score);
         }
-
-        // reader can only be closed when there
-        // is no need to access the documents any more.
         reader.close();
     }
 
-    private static void addDoc(IndexWriter w, String questionPos, int questionId) throws IOException {
+    private static void addDoc(IndexWriter w, String questionPos, String questionPos2, int questionId) throws IOException {
         Document doc = new Document();
-        doc.add(new TextField("question", questionPos, Field.Store.YES));
+        doc.add(new TextField("questionPos", questionPos, Field.Store.YES));
+        doc.add(new TextField("questionPos2", questionPos2, Field.Store.YES));
         doc.add(new StoredField("questionId",questionId));
         w.addDocument(doc);
     }

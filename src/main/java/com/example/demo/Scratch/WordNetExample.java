@@ -9,10 +9,7 @@ package com.example.demo.Scratch;
 
 import net.didion.jwnl.JWNL;
 import net.didion.jwnl.JWNLException;
-import net.didion.jwnl.data.IndexWord;
-import net.didion.jwnl.data.POS;
-import net.didion.jwnl.data.PointerType;
-import net.didion.jwnl.data.PointerUtils;
+import net.didion.jwnl.data.*;
 import net.didion.jwnl.data.list.PointerTargetNodeList;
 import net.didion.jwnl.data.list.PointerTargetTree;
 import net.didion.jwnl.data.relationship.AsymmetricRelationship;
@@ -26,7 +23,7 @@ import java.io.FileInputStream;
 import java.util.Iterator;
 
 /** A class to demonstrate the functionality of the JWNL package. */
-public class Example {
+public class WordNetExample {
     private static final String USAGE = "java Examples <properties file>";
 
     public static void main(String[] args) {
@@ -35,7 +32,7 @@ public class Example {
         try {
             // initialize JWNL (this must be done before JWNL can be used)
             JWNL.initialize(new FileInputStream(propsFile));
-            new Example().go();
+            new WordNetExample().go();
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(-1);
@@ -49,7 +46,7 @@ public class Example {
     private IndexWord DROLL;
     private String MORPH_PHRASE = "running-away";
 
-    public Example() throws JWNLException {
+    public WordNetExample() throws JWNLException {
         ACCOMPLISH = Dictionary.getInstance().getIndexWord(POS.VERB, "accomplish");
         DOG = Dictionary.getInstance().getIndexWord(POS.NOUN, "dog");
         CAT = Dictionary.getInstance().lookupIndexWord(POS.NOUN, "cat");
@@ -58,6 +55,8 @@ public class Example {
     }
 
     public void go() throws JWNLException {
+        Dictionary dic = Dictionary.getInstance();
+        Synset[] s = dic.getIndexWord(POS.NOUN, "house").getSenses();
         demonstrateMorphologicalAnalysis(MORPH_PHRASE);
         demonstrateListOperation(ACCOMPLISH);
         demonstrateTreeOperation(DOG);
