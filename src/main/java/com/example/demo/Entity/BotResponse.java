@@ -1,33 +1,31 @@
 package com.example.demo.Entity;
 
-import java.util.List;
-
 public class BotResponse {
-    private Answer topAnswer;
-    private Question questionDecomposed;
-    private List<Match> matchList;
+    private String status;
+    private long responseTime;
+    private Object[] debugInfo;
 
-    public Answer getTopAnswer() {
-        return topAnswer;
+    public String getStatus() {
+        return status;
     }
 
-    public void setTopAnswer(Answer answer) {
-        this.topAnswer = answer;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public Question getQuestionDecomposed() {
-        return questionDecomposed;
+    public long getResponseTime() {
+        return responseTime;
     }
 
-    public void setQuestionDecomposed(Question questionDecomposed) {
-        this.questionDecomposed = questionDecomposed;
+    public void setResponseTime(long responseTime) {
+        this.responseTime = responseTime;
     }
 
-    public List<Match> getMatchList() {
-        return matchList;
+    public Object[] getDebugInfo() {
+        return debugInfo;
     }
 
-    public void setMatchList(List<Match> matchList) {
-        this.matchList = matchList;
+    public void setDebugInfo(Object[] debugInfo) {
+        this.debugInfo = debugInfo;
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 public class FeedbackComponentController {
     @PostMapping(
             value = "/receiveFeedback", consumes = "application/json", produces = "application/json")
-    public BotResponse receiveFeedback(@RequestBody Question question) {
+    public BotResponse receiveFeedback(@RequestBody Question question) {//TODO: Register feedback, send acknowledgement
         BotResponse botResponse = new BotResponse();
         return botResponse;
     }

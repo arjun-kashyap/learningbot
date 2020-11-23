@@ -16,6 +16,18 @@ function reIndex() {
     xmlhttp.send(JSON.stringify({}));
 }
 
+function dumpQuestions() {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            alert(this.responseText);
+        }
+    };
+    xmlhttp.open("POST", "dumpQuestions", true);
+    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xmlhttp.send(JSON.stringify({}));
+}
+
 function getAnswer() {
     var question = document.getElementById("question").value;
     var conversation = document.getElementById("conversation").value;
@@ -30,7 +42,8 @@ function getAnswer() {
         if (this.readyState == 4 && this.status == 200) {
             response = JSON.parse(this.responseText);
             document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
-            document.getElementById("debug").value = JSON.stringify(response, null, 2);
+            document.getElementById("responseTime").value = response.responseTime;
+            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
             document.getElementById("submit").value = "Submit";
             document.getElementById("submit").disabled = false;
         }
@@ -42,14 +55,17 @@ function getAnswer() {
 </script>
 
 <div>
-    <table border="0" cellpadding="0" cellspacing="10" style="width:80%;">
+    <table border="0" cellpadding="0" cellspacing="10" style="width:100%;">
         <tbody>
         <tr>
-            <td style="width:80%; vertical-align:top">
+            <td style="width:60%; vertical-align:top">
                 <B>How may I help you? </B>Type your question in the box below
             </td>
             <td style="width:20%; vertical-align:top">
                 <B>Debug Info</B>
+            </td>
+            <td style="width:20%; vertical-align:top">
+                <B>Admin Panel</B>
             </td>
         </tr>
         <tr>
@@ -60,10 +76,20 @@ function getAnswer() {
             <td style="width:20%; vertical-align:top; background-color:#D0D0D0">
                 <textarea id="debug" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="26"></textarea>
             </td>
+            <td style="text-align: right;background-color:#D0D0D0"><input type="button" id="reindex" onclick="reIndex()" value="Reindex"></td>
+            <td style="text-align: right;background-color:#D0D0D0"><input type="button" id="dumpQuestions" onclick="dumpQuestions()" value="dumpQuestions"></td>
         </tr>
         <tr>
-            <td style="text-align: right;"><input type="button" id="submit" onclick="getAnswer()" value="Submit"></td>
-            <td style="text-align: right;"><input type="button" id="reindex" onclick="reIndex()" value="Reindex"></td>
+            <td>
+                <div style="display: inline-block; *display: inline;color:red;">
+                    Response Time (milliseconds): <input id="responseTime" style="border:0" value=0 disabled />
+                </div>
+                <div style="display: inline-block; *display: inline;float: right;">
+                    <input type="button" id="question_error" onclick="getAnswer1()" value="I did ask a question">
+                    <input type="button" id="incorrect_answer" onclick="getAnswer2()" value="Incorrect answer">
+                    <input type="button" id="submit" onclick="getAnswer()" value="Submit">
+                </div>
+            </td>
         </tr>
         </tbody>
     </table>

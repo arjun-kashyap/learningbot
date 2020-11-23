@@ -1,5 +1,6 @@
 package com.example.demo.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
@@ -7,10 +8,12 @@ import java.io.Serializable;
 public class Question implements Serializable {
     private int questionId;
     private String questionString;
-    @JsonProperty
+    private float maxPossibleSearcherScore;
+    @JsonIgnore
     private boolean isQuestion;
     private String noun;
     private String verb;
+    @JsonIgnore
     private String tree;
 
     public int getQuestionId() {
@@ -61,11 +64,22 @@ public class Question implements Serializable {
         this.tree = tree;
     }
 
+    public float getMaxPossibleSearcherScore() {
+        return maxPossibleSearcherScore;
+    }
+
+    public void setMaxPossibleSearcherScore(float maxPossibleSearcherScore) {
+        this.maxPossibleSearcherScore = maxPossibleSearcherScore;
+    }
+
     @Override
     public String toString() {
         return "Question{" +
                 "questionId=" + questionId +
-                ", question='" + questionString + '\'' +
+                ", questionString='" + questionString + '\'' +
+                ", isQuestion=" + isQuestion +
+                ", noun='" + noun + '\'' +
+                ", verb='" + verb +
                 '}';
     }
 }

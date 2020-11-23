@@ -1,4 +1,4 @@
-package com.example.demo.process;
+package com.example.demo.common;
 
 import com.example.demo.Entity.Question;
 import com.example.demo.Entity.WordClassification;
@@ -11,8 +11,7 @@ import edu.stanford.nlp.trees.Constituent;
 import edu.stanford.nlp.trees.LabeledScoredConstituentFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.core.StopAnalyzer;
+import edu.stanford.nlp.util.CoreMap;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,57 +24,64 @@ import java.util.Properties;
 import java.util.Set;
 
 @Component
-public class QuestionProcessor implements InitializingBean {
+public class SentenceAnalyzer implements InitializingBean {
     @Autowired
     private Environment env;
     private StanfordCoreNLP pipeline;
 
     public Question processQuestion(Question question) {
         // build annotation for a review
+        Question processedQuestion = new Question();
         Annotation annotation = new Annotation(question.getQuestionString());
         pipeline.annotate(annotation);
         // get tree
-        Tree tree =
-                annotation.get(CoreAnnotations.SentencesAnnotation.class).get(0).get(TreeCoreAnnotations.TreeAnnotation.class);
-        System.out.println(tree);
-        Set<Constituent> treeConstituents = tree.constituents(new LabeledScoredConstituentFactory());
-        for (Constituent constituent : treeConstituents) {
-            if (constituent.label() != null &&
-                    (constituent.label().toString().equals("VP") || constituent.label().toString().equals("NP"))) {
-                System.out.println("found constituent: " + constituent.toString());
-                System.out.println(tree.getLeaves().subList(constituent.start(), constituent.end() + 1));
+        List<CoreMap> coreMapList = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+        if (coreMapList.size() >= 1) {
+            Tree tree = coreMapList.get(0).get(TreeCoreAnnotations.TreeAnnotation.class);
+            Set<Constituent> treeConstituents = tree.constituents(new LabeledScoredConstituentFactory());
+            for (Constituent constituent : treeConstituents) {
+                if (constituent.label() != null &&
+                        (constituent.label().toString().equals("VP") || constituent.label().toString().equals("NP"))) {
+                }
             }
-        }
-        Question processedQuestion = new Question();
-        processedQuestion.setQuestionString(question.getQuestionString());
-        processedQuestion.setTree(tree.toString());
-        if (processedQuestion.getTree().contains("SBARQ")||processedQuestion.getTree().contains("SQ")) {
-            processedQuestion.setIsQuestion(true);
-        }
-        else {
+            processedQuestion.setQuestionString(question.getQuestionString());
+            processedQuestion.setTree(tree.toString());
+            if (processedQuestion.getTree().contains("SBARQ") || processedQuestion.getTree().contains("SQ")) {
+                processedQuestion.setIsQuestion(true);
+            } else {
+                processedQuestion.setIsQuestion(false);
+            }
+        } else {
             processedQuestion.setIsQuestion(false);
         }
+
         return processedQuestion;
     }
 
     public List<WordClassification> getPosElements(String text) {
         List<WordClassification> classifiedList = new ArrayList<>();
         CoreDocument document = pipeline.processToCoreDocument(text);
+        WordClassification word;
+        WordClassification lastWord = null;
         for (CoreLabel tok : document.tokens()) {
-            CharArraySet x = EnglishAnalyzer.getDefaultStopSet();//TODO: stop words
-            if ((tok.tag().startsWith("NN") || tok.tag().startsWith("VB"))) {
-                WordClassification wc = new WordClassification();
-                wc.setLemma(tok.lemma());
-                wc.setWord(tok.word());
-                wc.setPos(tok.tag());
-                classifiedList.add(wc);
+            if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((tok.tag().startsWith("NN") || tok.tag().startsWith("VB")))) {
+                word = new WordClassification();
+                word.setLemma(tok.lemma());
+                word.setWord(tok.word());
+                word.setPos(tok.tag());
+                classifiedList.add(word);
+                lastWord = word;
+            }
+            if ((tok.tag().equals("IN") || tok.tag().equals("TO"))&&(lastWord != null)&&(lastWord.getPos().startsWith("NN"))) { //Take care of "preposition"
+                lastWord.setPos("VB");
+                lastWord = null;
             }
         }
         return classifiedList;
     }
 
     @Override
-    public void afterPropertiesSet()  {
+    public void afterPropertiesSet() {
         Properties props = new Properties();
         props.setProperty("annotators", env.getProperty("corenlp.annotators"));
         // use faster shift reduce parser

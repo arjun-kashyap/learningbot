@@ -24,7 +24,7 @@ public class Answer implements Serializable {
 
     @Override
     public int hashCode() {
-        return (int) answerId * answerString.hashCode();
+        return answerId;
     }
 
     @Override
@@ -33,12 +33,14 @@ public class Answer implements Serializable {
         if (obj == null) return false;
         if (this.getClass() != obj.getClass()) return false;
         Answer otherAnswer = (Answer) obj;
-        return answerId == otherAnswer.answerId && answerString.equals(otherAnswer.answerString);
+        return answerId == otherAnswer.answerId;
     }
 
     @Override
     public String toString() {
-        return "id: " + answerId + ", answer: " + answerString;
+        return "{" +
+                "answerId=" + answerId +
+                ", answerString='" + answerString + '\'' +
+                '}';
     }
-
 }
