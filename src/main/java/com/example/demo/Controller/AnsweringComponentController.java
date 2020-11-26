@@ -3,8 +3,8 @@ package com.example.demo.Controller;
 import com.example.demo.Entity.AnswerResponse;
 import com.example.demo.Entity.Match;
 import com.example.demo.Entity.Question;
-import com.example.demo.process.AnsweringComponentProcessor;
-import com.example.demo.process.IndexProcessor;
+import com.example.demo.process.AnswerProcessor;
+import com.example.demo.process.KnowledgeProcessor;
 import com.example.demo.common.SentenceAnalyzer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +14,11 @@ import java.util.TreeSet;
 @RestController
 public class AnsweringComponentController {
     @Autowired
-    private AnsweringComponentProcessor answeringComponentProcessor;
+    private AnswerProcessor answerProcessor;
     @Autowired
     private SentenceAnalyzer sentenceAnalyzer;
     @Autowired
-    private IndexProcessor indexProcessor;
+    private KnowledgeProcessor knowledgeProcessor;
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
@@ -26,7 +26,7 @@ public class AnsweringComponentController {
         TreeSet<Match> matches;
         long startTime = System.currentTimeMillis();
         question = sentenceAnalyzer.processQuestion(question);
-        matches = answeringComponentProcessor.getAnswer(question);
+        matches = answerProcessor.getAnswer(question);
 
         AnswerResponse answerResponse = new AnswerResponse();
         answerResponse.setTopAnswer(matches.first().getAnswer());
@@ -38,8 +38,11 @@ public class AnsweringComponentController {
         //TODO: If the question text had different nouns and verbs, and the vote count increases add the question to the database
         //      The question table can have a new column to indicate if the question was automatically added
         //
+        //TODO: Use NER parser of CoreNLP to detect names of people and organization and use in addition to nouns and verbs
+        // See https://www.aclweb.org/anthology/P14-5010.pdf
+
         answerResponse.setStatus("SUCCESS");
-        answerResponse.setDebugInfo(new Object[]{question, matches});
+        answerResponse.setDebugInfo(question.toString()+matches.toString()); //TODO: Make debugInfo Json?
         return answerResponse;
     }
 

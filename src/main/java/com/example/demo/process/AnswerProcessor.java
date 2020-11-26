@@ -13,11 +13,11 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Component
-public class AnsweringComponentProcessor {//TODO: get only the best question match by score. Score the questions properly
+public class AnswerProcessor {//TODO: get only the best question match by score. Score the questions properly
     @Autowired
     private JdbcTemplate jtm;
     @Autowired
-    private IndexProcessor indexProcessor;
+    private KnowledgeProcessor knowledgeProcessor;
     private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_searcher_score " +
             "from question q, answer a, question_answer_relation r " +
              "where q.question_id = r.question_id " +
@@ -27,7 +27,7 @@ public class AnsweringComponentProcessor {//TODO: get only the best question mat
     public TreeSet<Match> getAnswer(Question inputQuestion) {
         List<Match> possibleMatches;
         if (inputQuestion.getIsQuestion()) {
-            possibleMatches = indexProcessor.search(inputQuestion.getQuestionString());
+            possibleMatches = knowledgeProcessor.search(inputQuestion.getQuestionString());
             for (Match match : possibleMatches) {
                 //System.out.println("QID: " + match.getQuestion().getQuestionId() + " score: " + match.getSearcherScore());
                 if (match.getSearcherScore() >= 0) {//TODO: check proper score

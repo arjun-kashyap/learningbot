@@ -4,56 +4,52 @@
 </head>
 <body>
 <script>
-function reIndex() {
+function postRequestToServer(endpoint, payload, callbackFunction) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             response = JSON.parse(this.responseText);
-            alert(response.status);
-            document.getElementById("adminStatusMessage").value = response.status;
+            callbackFunction(response);
         }
     };
-    xmlhttp.open("POST", "reIndex", true);
+    xmlhttp.open("POST", endpoint, true);
     xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xmlhttp.send(JSON.stringify({}));
+    xmlhttp.send(payload);
+}
+
+function reIndex() {
+    postRequestToServer("reIndex", {}, function(response) {
+                                            document.getElementById("adminInfo").value = response.status;
+                                        }
+                       );
 }
 
 function dumpQuestions() {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            alert(this.responseText);
-        }
-    };
-    xmlhttp.open("POST", "dumpQuestions", true);
-    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xmlhttp.send(JSON.stringify({}));
+    postRequestToServer("dumpQuestions", {}, function(response) {
+                                            document.getElementById("adminInfo").value = response.debugInfo;
+                                        }
+                       );
 }
 
 function getAnswer() {
-    var question = document.getElementById("question").value;
+    var question = document.getElementById("question").value.trim();
     var conversation = document.getElementById("conversation").value;
     conversation = conversation + "\nYou: " + question;
     document.getElementById("conversation").value = conversation;
     document.getElementById("question").value = "";
     document.getElementById("submit").value = "Please wait";
     document.getElementById("submit").disabled = true;
-
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            response = JSON.parse(this.responseText);
-            document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
-            document.getElementById("responseTime").value = response.responseTime;
-            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
-            document.getElementById("submit").value = "Submit";
-            document.getElementById("submit").disabled = false;
-        }
-    };
-    xmlhttp.open("POST", "postQuestion", true);
-    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xmlhttp.send(JSON.stringify({"questionString":question}));
+    payload = JSON.stringify({"questionString":question});
+    postRequestToServer("postQuestion", payload, function(response) {
+                                            document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
+                                            document.getElementById("responseTime").value = response.responseTime;
+                                            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
+                                            document.getElementById("submit").value = "Submit";
+                                            document.getElementById("submit").disabled = false;
+                                    }
+                          );
 }
+
 </script>
 
 <div>
@@ -104,10 +100,8 @@ function getAnswer() {
             </td>
         </tr>
         <tr>
-            <td>
-                <div style="display: inline-block; *display: inline;color:blue;">
-                    <input id="adminStatusMessage" style="border:0" value="" disabled />
-                </div>
+            <td style="vertical-align:top; background-color:#D0D0D0">
+                <textarea id="adminInfo" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="26"></textarea>
             </td>
         </tr>
         </tbody>

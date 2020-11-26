@@ -3,7 +3,7 @@ package com.example.demo.Entity;
 public class BotResponse {
     private String status;
     private long responseTime;
-    private Object[] debugInfo;
+    private String debugInfo;
 
     public String getStatus() {
         return status;
@@ -21,11 +21,11 @@ public class BotResponse {
         this.responseTime = responseTime;
     }
 
-    public Object[] getDebugInfo() {
+    public String getDebugInfo() {
         return debugInfo;
     }
 
-    public void setDebugInfo(Object[] debugInfo) {
+    public void setDebugInfo(String debugInfo) {
         this.debugInfo = debugInfo;
     }
 }

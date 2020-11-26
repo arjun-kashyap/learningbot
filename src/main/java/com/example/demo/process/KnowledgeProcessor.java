@@ -30,7 +30,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Component
-public class IndexProcessor {
+public class KnowledgeProcessor {
     @Autowired
     private JdbcTemplate jtm;
     @Autowired

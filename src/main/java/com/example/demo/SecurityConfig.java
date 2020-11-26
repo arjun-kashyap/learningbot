@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableWebSecurity // To allow H2 database management from browser
-//@EnableTransactionManagement //Otherwise SQL updates are not committing
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
