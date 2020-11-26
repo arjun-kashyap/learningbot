@@ -4,13 +4,11 @@ import com.example.demo.Entity.AnswerResponse;
 import com.example.demo.Entity.Match;
 import com.example.demo.Entity.Question;
 import com.example.demo.process.AnsweringComponentProcessor;
-import com.example.demo.process.Indexer;
+import com.example.demo.process.IndexProcessor;
 import com.example.demo.common.SentenceAnalyzer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 @RestController
@@ -20,7 +18,7 @@ public class AnsweringComponentController {
     @Autowired
     private SentenceAnalyzer sentenceAnalyzer;
     @Autowired
-    private Indexer indexer;
+    private IndexProcessor indexProcessor;
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
@@ -36,7 +34,10 @@ public class AnsweringComponentController {
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
-
+        //TODO: Log each interaction and the response in table
+        //TODO: If the question text had different nouns and verbs, and the vote count increases add the question to the database
+        //      The question table can have a new column to indicate if the question was automatically added
+        //
         answerResponse.setStatus("SUCCESS");
         answerResponse.setDebugInfo(new Object[]{question, matches});
         return answerResponse;

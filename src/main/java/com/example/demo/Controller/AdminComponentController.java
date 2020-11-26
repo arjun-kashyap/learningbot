@@ -14,8 +14,14 @@ public class AdminComponentController {
     @PostMapping(
             value = "/reIndex", consumes = "application/json", produces = "application/json")
     public BotResponse reIndex() {
+        long startTime = System.currentTimeMillis();
+
         adminProcessor.reIndex();
-     return new BotResponse();
+        BotResponse response = new BotResponse();
+        response.setStatus("Re-indexed successfully");
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        response.setResponseTime(elapsedTime);
+        return response;
     }
 
     @PostMapping(
@@ -25,5 +31,7 @@ public class AdminComponentController {
         return new BotResponse();
     }
 
-//TODO: Write code to show satisfaction rate, adjust scoring parameters, etc
+    //TODO: Write code to show satisfaction rate, adjust scoring parameters, etc
+
+    //TODO: Method to adjust parameters
 }

@@ -1,6 +1,5 @@
 package com.example.demo.process;
 
-import com.example.demo.Entity.Match;
 import com.example.demo.Entity.Question;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,10 +15,10 @@ public class AdminProcessor {
     @Autowired
     private JdbcTemplate jtm;
     @Autowired
-    private Indexer indexer;
+    private IndexProcessor indexProcessor;
 
     public void reIndex() {
-        indexer.init();
+        indexProcessor.indexAllQuestions();
     }
 
     public List<Question> dumpQuestions() {

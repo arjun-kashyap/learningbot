@@ -17,5 +17,11 @@ public class FeedbackComponentController {
         BotResponse botResponse = new BotResponse();
         return botResponse;
     }
+    //TODO: Method for sending back another answer
+
+    //TODO: Method for not detecting a question properly
+
+    //TODO: Method for marking incorrect answer. What if a question is marked with too many down-votes.
+    // We may be giving some other answer that is not appropriate
 
 }

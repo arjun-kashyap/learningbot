@@ -17,7 +17,7 @@ public class AnsweringComponentProcessor {//TODO: get only the best question mat
     @Autowired
     private JdbcTemplate jtm;
     @Autowired
-    private Indexer indexer;
+    private IndexProcessor indexProcessor;
     private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_searcher_score " +
             "from question q, answer a, question_answer_relation r " +
              "where q.question_id = r.question_id " +
@@ -27,7 +27,7 @@ public class AnsweringComponentProcessor {//TODO: get only the best question mat
     public TreeSet<Match> getAnswer(Question inputQuestion) {
         List<Match> possibleMatches;
         if (inputQuestion.getIsQuestion()) {
-            possibleMatches = indexer.search(inputQuestion.getQuestionString());
+            possibleMatches = indexProcessor.search(inputQuestion.getQuestionString());
             for (Match match : possibleMatches) {
                 //System.out.println("QID: " + match.getQuestion().getQuestionId() + " score: " + match.getSearcherScore());
                 if (match.getSearcherScore() >= 0) {//TODO: check proper score
@@ -59,7 +59,7 @@ public class AnsweringComponentProcessor {//TODO: get only the best question mat
                 question.setIsQuestion(true);
                 Answer answer = new Answer();
                 answer.setAnswerId(-1);
-                answer.setAnswerString("Sorry, I don't have an answer");
+                answer.setAnswerString("Sorry, I don't have an answer for this question. This question has been recorded for analysis.");
                 Match match = new Match();
                 match.setQuestion(question);
                 match.setAnswer(answer);
@@ -68,16 +68,17 @@ public class AnsweringComponentProcessor {//TODO: get only the best question mat
                 match.setVoteScore(0.0f);
                 match.setWeightedFinalScore(0.0f);
                 possibleMatches.add(match);
+                //TODO Add to database for analysis
             }
         }
         else {
             possibleMatches = new ArrayList<>();
             Question question = new Question();
-            question.setQuestionString("Not a question");
+            question.setQuestionString("");
             question.setQuestionId(-2);
             Answer answer = new Answer();
             answer.setAnswerId(-1);
-            answer.setAnswerString("Ok");
+            answer.setAnswerString("You did not seem to have asked a question. If the question is proper, please click the button in feedback section.");
             Match match = new Match();
             match.setQuestion(question);
             match.setAnswer(answer);
