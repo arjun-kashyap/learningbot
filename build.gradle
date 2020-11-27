@@ -40,10 +40,10 @@ dependencies {
 	}
 }
 
-appengine {  // App Engine tasks configuration
+appengine {
 	deploy {   // deploy configuration
-		projectId = System.getenv('GOOGLE_CLOUD_PROJECT')
-		version = '1'
+		stopPreviousVersion = true  // default - stop the current version
+		promote = true              // default - & make this the current version
 	}
 }
 
