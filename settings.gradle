@@ -1,4 +1,4 @@
-rootProject.name = 'demo'
+rootProject.name = 'LearningBot'
 include 'untitled'
-findProject(':untitled')?.name = 'demo'
+findProject(':untitled')?.name = 'LearningBot'
 

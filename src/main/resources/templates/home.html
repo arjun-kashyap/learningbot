@@ -24,6 +24,13 @@ function reIndex() {
                        );
 }
 
+function reInitialize() {
+    postRequestToServer("reInitialize", {}, function(response) {
+                                            document.getElementById("adminInfo").value = response.status;
+                                        }
+                       );
+}
+
 function dumpQuestions() {
     postRequestToServer("dumpQuestions", {}, function(response) {
                                             document.getElementById("adminInfo").value = response.debugInfo;
@@ -96,6 +103,7 @@ function getAnswer() {
         <tr>
             <td style="text-align: left;background-color:#D0D0D0">
                 <input type="button" id="reindex" onclick="reIndex()" value="Reindex">
+                <input type="button" id="reinitialize" onclick="reInitialize()" value="Renitialize">
                 <input type="button" id="dumpQuestions" onclick="dumpQuestions()" value="dumpQuestions">
             </td>
         </tr>
