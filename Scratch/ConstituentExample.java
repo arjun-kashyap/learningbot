@@ -11,7 +11,7 @@ import edu.stanford.nlp.util.CoreMap;
 
 import java.util.*;
 
-public class ConstituentExample {
+public class  ConstituentExample {
 
     public static void main(String[] args) {
         // set up pipeline properties
