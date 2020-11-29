@@ -29,12 +29,14 @@ public class SentenceAnalyzer implements InitializingBean {
     private Environment env;
     private StanfordCoreNLP pipeline;
 
-    public Question processQuestion(Question question) {
-        // build annotation for a review
+    /*
+
+     */
+    public Question processQuestion(String questionString) {
         Question processedQuestion = new Question();
-        Annotation annotation = new Annotation(question.getQuestionString());
+        processedQuestion.setQuestionString(questionString);
+        Annotation annotation = new Annotation(questionString);
         pipeline.annotate(annotation);
-        // get tree
         List<CoreMap> coreMapList = annotation.get(CoreAnnotations.SentencesAnnotation.class);
         if (coreMapList.size() >= 1) {
             Tree tree = coreMapList.get(0).get(TreeCoreAnnotations.TreeAnnotation.class);
@@ -44,7 +46,6 @@ public class SentenceAnalyzer implements InitializingBean {
                         (constituent.label().toString().equals("VP") || constituent.label().toString().equals("NP"))) {
                 }
             }
-            processedQuestion.setQuestionString(question.getQuestionString());
             processedQuestion.setTree(tree.toString());
             if (processedQuestion.getTree().contains("SBARQ") || processedQuestion.getTree().contains("SQ")) {
                 processedQuestion.setIsQuestion(true);
@@ -84,7 +85,6 @@ public class SentenceAnalyzer implements InitializingBean {
     public void afterPropertiesSet() {
         Properties props = new Properties();
         props.setProperty("annotators", env.getProperty("corenlp.annotators"));
-        // use faster shift reduce parser
         props.setProperty("parse.model", env.getProperty("corenlp.parse.model"));
         props.setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
         pipeline = new StanfordCoreNLP(props);

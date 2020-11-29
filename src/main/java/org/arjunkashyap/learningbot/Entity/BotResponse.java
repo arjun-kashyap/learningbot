@@ -4,6 +4,7 @@ public class BotResponse {
     private String status;
     private long responseTime;
     private String debugInfo;
+    private AnswerResponse pastResponse;
 
     public String getStatus() {
         return status;

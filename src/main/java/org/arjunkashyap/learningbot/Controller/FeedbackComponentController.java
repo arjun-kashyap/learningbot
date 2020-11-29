@@ -1,5 +1,6 @@
 package org.arjunkashyap.learningbot.Controller;
 
+import org.arjunkashyap.learningbot.Entity.BotRequest;
 import org.arjunkashyap.learningbot.Entity.BotResponse;
 import org.arjunkashyap.learningbot.Entity.Question;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class FeedbackComponentController {
     @PostMapping(
             value = "/receiveFeedback", consumes = "application/json", produces = "application/json")
-    public BotResponse receiveFeedback(@RequestBody Question question) {//TODO: Register feedback, send acknowledgement
+    public BotResponse receiveFeedback(@RequestBody BotRequest request) {//TODO: Register feedback, send acknowledgement
         //TODO: Log each interaction and the response in table
         BotResponse botResponse = new BotResponse();
         return botResponse;

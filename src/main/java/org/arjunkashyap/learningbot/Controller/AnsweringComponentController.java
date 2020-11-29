@@ -1,6 +1,7 @@
 package org.arjunkashyap.learningbot.Controller;
 
 import org.arjunkashyap.learningbot.Entity.AnswerResponse;
+import org.arjunkashyap.learningbot.Entity.BotRequest;
 import org.arjunkashyap.learningbot.Entity.Match;
 import org.arjunkashyap.learningbot.Entity.Question;
 import org.arjunkashyap.learningbot.process.AnswerProcessor;
@@ -19,15 +20,15 @@ public class AnsweringComponentController {
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
-    public AnswerResponse postQuestion(@RequestBody Question question) {
+    public AnswerResponse postQuestion(@RequestBody BotRequest request) {
         TreeSet<Match> matches;
         long startTime = System.currentTimeMillis();
-        question = sentenceAnalyzer.processQuestion(question);
+        Question question = sentenceAnalyzer.processQuestion(request.getInput());
         matches = answerProcessor.getAnswer(question);
 
         AnswerResponse answerResponse = new AnswerResponse();
         answerResponse.setTopAnswer(matches.first().getAnswer());
-        answerResponse.setMatchList(matches.descendingSet());
+        answerResponse.setMatches(matches.descendingSet());
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table

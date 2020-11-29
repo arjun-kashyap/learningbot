@@ -1,10 +1,19 @@
 package org.arjunkashyap.learningbot.Entity;
 
+import java.io.Serializable;
 import java.util.Set;
 
-public class AnswerResponse extends BotResponse{
+public class AnswerResponse extends BotResponse implements Serializable {
+    private Set<Match> matches;
     private Answer topAnswer;
-    private Set<Match> matchList;
+
+    public Set<Match> getMatches() {
+        return matches;
+    }
+
+    public void setMatches(Set<Match> matches) {
+        this.matches = matches;
+    }
 
     public Answer getTopAnswer() {
         return topAnswer;
@@ -12,14 +21,6 @@ public class AnswerResponse extends BotResponse{
 
     public void setTopAnswer(Answer answer) {
         this.topAnswer = answer;
-    }
-
-    public Set<Match> getMatchList() {
-        return matchList;
-    }
-
-    public void setMatchList(Set<Match> matchList) {
-        this.matchList = matchList;
     }
 
 }

@@ -46,7 +46,7 @@ function getAnswer() {
     document.getElementById("question").value = "";
     document.getElementById("submit").value = "Please wait";
     document.getElementById("submit").disabled = true;
-    payload = JSON.stringify({"questionString":question});
+    payload = JSON.stringify({"input":question});
     postRequestToServer("postQuestion", payload, function(response) {
                                             document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
                                             document.getElementById("responseTime").value = response.responseTime;
