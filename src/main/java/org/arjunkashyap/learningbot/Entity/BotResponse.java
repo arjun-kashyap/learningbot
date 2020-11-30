@@ -4,7 +4,7 @@ public class BotResponse {
     private String status;
     private long responseTime;
     private String debugInfo;
-    private AnswerResponse pastResponse;
+    private String context;
 
     public String getStatus() {
         return status;
@@ -28,5 +28,13 @@ public class BotResponse {
 
     public void setDebugInfo(String debugInfo) {
         this.debugInfo = debugInfo;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
     }
 }

@@ -1,9 +1,11 @@
 <html>
 <head>
-    <title></title>
+    <title>Learning Bot</title>
 </head>
 <body>
 <script>
+var context;
+
 function postRequestToServer(endpoint, payload, callbackFunction) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
@@ -38,24 +40,40 @@ function dumpQuestions() {
                        );
 }
 
+function getNextAnswer() {
+    payload = JSON.stringify({"context":context});
+    var conversationTextarea = document.getElementById("conversation");
+    var conversation = conversationTextarea.value;
+    postRequestToServer("getNextAnswer", payload, function(response) {
+                                            conversationTextarea.value = conversation + "ChatBot: " + response.topAnswer.answerString + "\n";
+                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
+                                            context = response.context;
+                                                                     }
+                          );
+}
+
 function getAnswer() {
     var question = document.getElementById("question").value.trim();
-    var conversation = document.getElementById("conversation").value;
+    var conversationTextarea = document.getElementById("conversation");
+    var conversation = conversationTextarea.value;
     conversation = conversation + "\nYou: " + question;
-    document.getElementById("conversation").value = conversation;
+    conversationTextarea.value = conversation;
     document.getElementById("question").value = "";
     document.getElementById("submit").value = "Please wait";
     document.getElementById("submit").disabled = true;
     payload = JSON.stringify({"input":question});
     postRequestToServer("postQuestion", payload, function(response) {
-                                            document.getElementById("conversation").value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
+                                            conversationTextarea.value = conversation + "\nChatBot: " + response.topAnswer.answerString + "\n";
+                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
                                             document.getElementById("responseTime").value = response.responseTime;
                                             document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
                                             document.getElementById("submit").value = "Submit";
                                             document.getElementById("submit").disabled = false;
+                                            context = response.context;
                                     }
                           );
 }
+
 
 </script>
 
@@ -64,29 +82,33 @@ function getAnswer() {
         <tbody>
         <tr>
             <td style="width:60%; vertical-align:top">
-                <B>How may I help you? </B>Type your question in the box below
+                <b>How may I help you? </b>Type your question in the box below
             </td>
             <td style="width:20%; vertical-align:top">
-                <B>Debug Info</B>
+                <b>Debug Info</b>
             </td>
         </tr>
         <tr>
             <td style="width:80%; vertical-align:top; background-color:#D0D0D0">
-                <textarea id="conversation" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="20"></textarea>
+                <textarea id="conversation" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
+                          readonly="readonly" rows="20"></textarea>
                 <textarea style="border:1; width: 100%;" id="question" name="question" rows="5"></textarea>
             </td>
             <td style="width:20%; vertical-align:top; background-color:#D0D0D0">
-                <textarea id="debug" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="26"></textarea>
+                <textarea id="debug" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
+                          readonly="readonly" rows="26"></textarea>
             </td>
         </tr>
         <tr>
             <td>
                 <div style="display: inline-block; *display: inline;color:red;">
-                    Response Time (milliseconds): <input id="responseTime" style="border:0" value=0 disabled />
+                    Response Time (milliseconds): <input id="responseTime" style="border:0" value="0" disabled="">
                 </div>
                 <div style="display: inline-block; *display: inline;float: right;">
-                    <input type="button" id="question_error" onclick="getAnswer1()" value="I did ask a question">
-                    <input type="button" id="incorrect_answer" onclick="getAnswer2()" value="Incorrect answer">
+                    <input type="button" id="next_answer" onclick="getNextAnswer()" value="Get another answer">
+                    <input type="button" id="correct_answer" onclick="XXX()" value="Correct Answer">
+                    <input type="button" id="question_error" onclick="XXX()" value="I did ask a question">
+                    <input type="button" id="incorrect_answer" onclick="YYY()" value="Incorrect answer">
                     <input type="button" id="submit" onclick="getAnswer()" value="Submit">
                 </div>
             </td>
@@ -97,7 +119,7 @@ function getAnswer() {
         <tbody>
         <tr>
             <td style="width:100%; vertical-align:top">
-                <B>Admin Panel</B>
+                <b>Admin Panel</b>
             </td>
         </tr>
         <tr>
@@ -109,7 +131,8 @@ function getAnswer() {
         </tr>
         <tr>
             <td style="vertical-align:top; background-color:#D0D0D0">
-                <textarea id="adminInfo" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="26"></textarea>
+                <textarea id="adminInfo" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
+                          readonly="readonly" rows="26"></textarea>
             </td>
         </tr>
         </tbody>

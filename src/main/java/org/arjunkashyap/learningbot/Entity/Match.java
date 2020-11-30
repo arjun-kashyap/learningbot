@@ -1,8 +1,9 @@
 package org.arjunkashyap.learningbot.Entity;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Match implements Comparable<Match>{
+public class Match implements Comparable<Match>, Serializable {
     private Answer answer;
     private Question question;
     private float searcherScore;

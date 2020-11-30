@@ -22,7 +22,7 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
             "and r.answer_id=a.answer_id " +
             "and q.question_id = ?";
 
-    public TreeSet<Match> getAnswer(Question inputQuestion) {
+    public List<Match> getAnswer(Question inputQuestion) {
         List<Match> possibleMatches;
         if (inputQuestion.getIsQuestion()) {
             possibleMatches = knowledgeProcessor.search(inputQuestion.getQuestionString());
@@ -87,10 +87,12 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
             possibleMatches.add(match);
         }
         Collections.sort(possibleMatches, Comparator.comparingDouble(Match::getWeightedFinalScore).reversed());
-        TreeSet<Match> topMatches = new TreeSet<>();
-        for (Match match: possibleMatches) {
+        Set<Match> topMatches = new TreeSet<>();
+        for (Match match: possibleMatches) {//Putting in Set to remove duplicates
             topMatches.add(match);
         }
-        return topMatches;
+        List<Match> matchList = new ArrayList<>();
+        matchList.addAll(topMatches);
+        return matchList;
     }
 }

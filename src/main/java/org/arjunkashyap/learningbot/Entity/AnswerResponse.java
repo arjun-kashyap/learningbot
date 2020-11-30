@@ -1,17 +1,18 @@
 package org.arjunkashyap.learningbot.Entity;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 public class AnswerResponse extends BotResponse implements Serializable {
-    private Set<Match> matches;
+    private List<Match> matches;
     private Answer topAnswer;
+    private boolean moreAnswers; //TODO: implement logic to enable button functionality
 
-    public Set<Match> getMatches() {
+    public List<Match> getMatches() {
         return matches;
     }
 
-    public void setMatches(Set<Match> matches) {
+    public void setMatches(List<Match> matches) {
         this.matches = matches;
     }
 
@@ -22,5 +23,4 @@ public class AnswerResponse extends BotResponse implements Serializable {
     public void setTopAnswer(Answer answer) {
         this.topAnswer = answer;
     }
-
 }

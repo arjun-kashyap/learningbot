@@ -4,31 +4,38 @@ import org.arjunkashyap.learningbot.Entity.AnswerResponse;
 import org.arjunkashyap.learningbot.Entity.BotRequest;
 import org.arjunkashyap.learningbot.Entity.Match;
 import org.arjunkashyap.learningbot.Entity.Question;
+import org.arjunkashyap.learningbot.common.Utilities;
 import org.arjunkashyap.learningbot.process.AnswerProcessor;
 import org.arjunkashyap.learningbot.process.KnowledgeProcessor;
 import org.arjunkashyap.learningbot.common.SentenceAnalyzer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.TreeSet;
+import java.util.*;
 
 @RestController
 public class AnsweringComponentController {
     @Autowired private AnswerProcessor answerProcessor;
     @Autowired private SentenceAnalyzer sentenceAnalyzer;
     @Autowired private KnowledgeProcessor knowledgeProcessor;
+    @Autowired private Utilities<Map<String, Object>> utilities;
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
     public AnswerResponse postQuestion(@RequestBody BotRequest request) {
-        TreeSet<Match> matches;
         long startTime = System.currentTimeMillis();
         Question question = sentenceAnalyzer.processQuestion(request.getInput());
-        matches = answerProcessor.getAnswer(question);
+        List<Match> matches = answerProcessor.getAnswer(question);
 
         AnswerResponse answerResponse = new AnswerResponse();
-        answerResponse.setTopAnswer(matches.first().getAnswer());
-        answerResponse.setMatches(matches.descendingSet());
+        answerResponse.setMatches(matches);
+        answerResponse.setTopAnswer(matches.get(0).getAnswer());
+        //answerResponse.setTopAnswer(matches.first().getAnswer());
+        Map<String, Object> context = new HashMap<>();
+        context.put("QUESTION", question);
+        context.put("LAST_ANSWER_INDEX", 0);
+        context.put("LAST_MATCHES", matches);
+        answerResponse.setContext(utilities.serializeToString(context));
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
