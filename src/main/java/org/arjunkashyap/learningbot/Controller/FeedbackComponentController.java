@@ -29,11 +29,13 @@ public class FeedbackComponentController {
             value = "/getNextAnswer", consumes = "application/json", produces = "application/json")
     public AnswerResponse getNextAnswer(@RequestBody BotRequest request) {
         long startTime = System.currentTimeMillis();
-        System.out.println(request.getContext());
-        Map<String, Object> context = utilities.deserializeFromString(request.getContext());
+        AnswerResponse answerResponse = new AnswerResponse();
+        Map<String, Object> context = null;
+        if (request.getContext() != null) {
+            context = utilities.deserializeFromString(request.getContext());
+        }
         //System.out.println("Last Index: "+lastAnswerIndex);
         //System.out.println("Previous Response: "+matches.get(lastAnswerIndex).getAnswer().getAnswerString());
-        AnswerResponse answerResponse = new AnswerResponse();
         int lastAnswerIndex = Integer.MAX_VALUE;
         Question question = null;
         List<Match> matches = null;
