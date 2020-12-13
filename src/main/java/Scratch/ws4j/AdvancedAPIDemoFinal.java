@@ -1,10 +1,11 @@
-package com.example.demo.Scratch.ws4j;
+package Scratch.ws4j;
 
-import com.example.demo.Entity.Synonym;
 import edu.cmu.lti.jawjaw.db.SenseDAO;
 import edu.cmu.lti.jawjaw.db.SynlinkDAO;
 import edu.cmu.lti.jawjaw.db.WordDAO;
 import edu.cmu.lti.jawjaw.pobj.*;
+import org.arjunkashyap.learningbot.Entity.Synonym;
+
 import java.util.*;
 
 public class AdvancedAPIDemoFinal {
@@ -77,7 +78,7 @@ public class AdvancedAPIDemoFinal {
         Synonym mainWord = new Synonym();
         mainWord.setWord(inputWord);
         mainWord.setScore(100);
-        mainWord.setPos(inputPos);
+        //FIXME: mainWord.setPos(inputPos);
         synonyms.add(mainWord);
         sameLevelSynsets.addAll(getSynsetsForWord(inputWord, inputPos));
         for (String synsetId : sameLevelSynsets) {

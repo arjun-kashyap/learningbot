@@ -1,4 +1,4 @@
-package com.example.demo.Scratch;
+package Scratch;
 
 import edu.stanford.nlp.ling.*;
 import edu.stanford.nlp.pipeline.*;

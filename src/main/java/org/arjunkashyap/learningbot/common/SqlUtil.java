@@ -15,8 +15,7 @@ public class SqlUtil {
     @Autowired private ApplicationContext context;
     @Autowired private DataSource datasource;
 
-    // SQLFileName could be your schema-all.sql
-    // inject this class somewhere and call sqlUtil.runSqlFile("schema-all.sql");
+    // This runs any SQL file
     public void runSqlFile(String sqlFilename) {
         Resource resource = context.getResource(sqlFilename);
         EncodedResource encodedResource = new EncodedResource(resource, Charset.forName("UTF-8"));

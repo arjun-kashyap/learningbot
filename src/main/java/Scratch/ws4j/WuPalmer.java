@@ -1,4 +1,4 @@
-package com.example.demo.Scratch.ws4j;
+package Scratch.ws4j;
 //
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by FernFlower decompiler)

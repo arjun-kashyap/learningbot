@@ -1,4 +1,4 @@
-package com.example.demo.Scratch.ws4j;
+package Scratch.ws4j;
 
 import edu.cmu.lti.lexical_db.ILexicalDatabase;
 import edu.cmu.lti.lexical_db.NictWordNet;

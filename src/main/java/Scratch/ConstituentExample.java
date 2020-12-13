@@ -1,4 +1,4 @@
-package com.example.demo.Scratch;
+package Scratch;
 
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;

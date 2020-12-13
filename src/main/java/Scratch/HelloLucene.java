@@ -1,4 +1,4 @@
-package com.example.demo.Scratch;
+package Scratch;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;

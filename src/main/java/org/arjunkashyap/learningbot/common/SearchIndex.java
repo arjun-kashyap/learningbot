@@ -8,17 +8,23 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.MMapDirectory;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Component
 public class SearchIndex {
     private IndexSearcher searcher;
     private final StandardAnalyzer analyzer = new StandardAnalyzer();
-    private Directory index;
+    private Path indexPath = Paths.get("/Users/Suresh/demo_lucene/");//TODO: properties;
     private IndexReader reader;
+    private Directory index = new MMapDirectory(indexPath);
+
+    public SearchIndex() throws IOException {
+    }
 
     public IndexWriter getIndexWriterForWrite() throws IOException {
         if (reader != null) {
@@ -30,7 +36,9 @@ public class SearchIndex {
                 e.printStackTrace();
             }
         }
-        index = new MMapDirectory(Files.createTempDirectory("lucene").toAbsolutePath());
+        //
+        //index = new MMapDirectory(Files.createTempDirectory("lucene").toAbsolutePath());
+        FileUtils.deleteDirectory(indexPath.toFile());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(index, config);
         return indexWriter;
@@ -55,5 +63,4 @@ public class SearchIndex {
     public StandardAnalyzer getAnalyzer() {
         return analyzer;
     }
-
 }

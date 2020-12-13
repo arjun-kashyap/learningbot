@@ -1,6 +1,5 @@
-package com.example.demo.Scratch.ws4j;
+package Scratch.ws4j;
 
-import com.example.demo.Entity.Synonym;
 import edu.cmu.lti.jawjaw.db.SenseDAO;
 import edu.cmu.lti.jawjaw.db.SynlinkDAO;
 import edu.cmu.lti.jawjaw.db.WordDAO;
@@ -16,6 +15,7 @@ import edu.cmu.lti.ws4j.util.PorterStemmer;
 import edu.cmu.lti.ws4j.util.WS4JConfiguration;
 import net.didion.jwnl.data.IndexWordSet;
 import net.didion.jwnl.dictionary.Dictionary;
+import org.arjunkashyap.learningbot.Entity.Synonym;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,10 +52,11 @@ public class AdvancedAPIDemoLite {
                     if (synlink.getLink() == Link.hype)
                         l = synlink.getSynset1();
                     else
-                        l = synlink.getSynset2();
+                        l = synlink.getSynset2();//ss
                     List<Sense> sensesForFoundSynset = SenseDAO.findSensesBySynsetAndLang(l, Lang.eng);
                     for (Sense senseOfFoundSynset : sensesForFoundSynset) {
                         Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
+
                         System.out.print(foundWord.getLemma()+" ");
                         if (foundWord.getPos() == inputPos) {
                             Relatedness s = rc.calcRelatednessOfSynset(new Concept(synsetId, inputPos), new Concept(synlink.getSynset2(), inputPos));
@@ -78,9 +79,9 @@ public class AdvancedAPIDemoLite {
     }
 
     public static void main(String[] args) {//Gives only same level
-        List<Synonym> x = getTopSynonyms("phone", POS.n);
+        List<Synonym> x = getTopSynonyms("meaning", POS.n);
         for (Synonym a : x) {
-            //System.out.println(a.getWord());
+            System.out.println(a.getWord());
         }
 
     }

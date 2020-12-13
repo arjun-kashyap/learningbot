@@ -14,6 +14,19 @@ import java.util.Set;
 
 @Component
 public class Utilities<T> {
+    public static int[][] getAllCombinations(int[] input, int product) {
+        System.out.println("HEAP: "+product+" "+input.length);
+        int[][] combinations = new int[input.length][product];
+        int repeat = product;
+        for (int i = 0; i<input.length;i++) {
+            repeat = repeat/input[i];
+            for (int j = 0; j<product;j++) {
+                combinations[i][j] = (j / repeat) % input[i];
+            }
+        }
+        return combinations;
+    }
+
     public static List<List<Synonym>> getAllCombinations(List<Set<Synonym>> listOfSetOfSynonyms) {
         //System.out.println("HERE: " + listOfSetOfSynonyms);
         List<List<Synonym>> allCombinations = new ArrayList<>();

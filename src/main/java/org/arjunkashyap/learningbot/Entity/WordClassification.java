@@ -36,9 +36,9 @@ public class WordClassification {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordClassification that = (WordClassification) o;
-        return Objects.equals(word, that.word) &&
-                Objects.equals(lemma, that.lemma) &&
-                pos == that.pos;
+        return word.equals(that.word) &&
+                lemma.equals(that.lemma) &&
+                pos.equals(that.pos);
     }
 
     @Override

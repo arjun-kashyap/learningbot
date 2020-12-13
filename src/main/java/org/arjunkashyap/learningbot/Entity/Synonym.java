@@ -1,7 +1,6 @@
 package org.arjunkashyap.learningbot.Entity;
 
 import edu.cmu.lti.jawjaw.pobj.Link;
-import edu.cmu.lti.jawjaw.pobj.POS;
 
 import java.util.Objects;
 
@@ -9,7 +8,7 @@ public class Synonym implements Comparable<Synonym> {
     private String word;
     private int score;
     private Link linkType;
-    private POS pos;
+    private BotPOS pos;
 
     public String getWord() {
         return word;
@@ -35,11 +34,11 @@ public class Synonym implements Comparable<Synonym> {
         this.linkType = linkType;
     }
 
-    public POS getPos() {
+    public BotPOS getPos() {
         return pos;
     }
 
-    public void setPos(POS pos) {
+    public void setPos(BotPOS pos) {
         this.pos = pos;
     }
 

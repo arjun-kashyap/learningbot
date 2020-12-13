@@ -1,4 +1,4 @@
-package com.example.demo.Scratch.ws4j;
+package Scratch.ws4j;
 
 import java.util.List;
 

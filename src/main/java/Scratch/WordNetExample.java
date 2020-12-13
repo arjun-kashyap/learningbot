@@ -1,6 +1,4 @@
-package com.example.demo.Scratch;
-
-/**
+package Scratch; /**
  * Java WordNet Library (JWNL)
  * See the documentation for copyright information.
  *
