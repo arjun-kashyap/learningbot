@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>Learning Bot - Admin section</title>
+</head>
+<body>
+<script src="commonscripts.js"></script>
+<script src="adminscripts.js"></script>
+<div>
+    <table border="0" cellpadding="0" cellspacing="10" style="width:100%;">
+        <tbody>
+        <tr>
+            <td style="width:100%; vertical-align:top">
+                <b>Admin Panel</b>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: left;background-color:#D0D0D0">
+                <input type="button" id="reindex" onclick="reIndex()" value="Reindex">
+                <input type="button" id="reinitialize" onclick="reInitialize()" value="Renitialize">
+                <input type="button" id="dumpQuestions" onclick="dumpQuestions()" value="dumpQuestions">
+            </td>
+        </tr>
+        <tr>
+            <td style="vertical-align:top; background-color:#D0D0D0">
+                <textarea id="adminInfo" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
+                          readonly="readonly" rows="26"></textarea>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

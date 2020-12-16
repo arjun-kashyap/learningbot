@@ -4,19 +4,9 @@ import edu.cmu.lti.jawjaw.pobj.Link;
 
 import java.util.Objects;
 
-public class Synonym implements Comparable<Synonym> {
-    private String word;
+public class Synonym extends Word implements Comparable<Synonym> {
     private int score;
     private Link linkType;
-    private BotPOS pos;
-
-    public String getWord() {
-        return word;
-    }
-
-    public void setWord(String word) {
-        this.word = word;
-    }
 
     public int getScore() {
         return score;
@@ -32,14 +22,6 @@ public class Synonym implements Comparable<Synonym> {
 
     public void setLinkType(Link linkType) {
         this.linkType = linkType;
-    }
-
-    public BotPOS getPos() {
-        return pos;
-    }
-
-    public void setPos(BotPOS pos) {
-        this.pos = pos;
     }
 
     @Override

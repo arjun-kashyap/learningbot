@@ -36,8 +36,7 @@ public class SearchIndex {
                 e.printStackTrace();
             }
         }
-        //
-        //index = new MMapDirectory(Files.createTempDirectory("lucene").toAbsolutePath());
+
         FileUtils.deleteDirectory(indexPath.toFile());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(index, config);

@@ -28,7 +28,7 @@ public class WordNetUtilities {
         synonyms.add(mainWord);
         inputWord.replace(" ", "_"); // Wordnet compound words have _
 
-        if (limit > 1 && inputPos != BotPOS.cardinalNumber && inputPos != BotPOS.whClause) {
+        if (limit > 1 && inputPos != BotPOS.CARDINAL_NUMBER && inputPos != BotPOS.WH_QUESTION) {
             for (String synsetId : getSynsetsForWord(inputWord, inputPos)) { //Get other words in the synsets of the word
                 synonyms.addAll(getWordsInSynset(synsetId, Link.syns, inputPos));
                 for (String hyperSynsetId : getHyperSynsets(synsetId)) { //Get hyper (one level up) words
@@ -52,9 +52,9 @@ public class WordNetUtilities {
     private static List<String> getSynsetsForWord(String inputWord, BotPOS inputPos) {
         List<String> synsets = new ArrayList<>();
         POS pos = null;
-        if ((inputPos == BotPOS.noun)||(inputPos == BotPOS.namedEntity)) {
+        if ((inputPos == BotPOS.NOUN)||(inputPos == BotPOS.ENTITY)) {
             pos = POS.n;
-        } else if (inputPos == BotPOS.verb) {
+        } else if (inputPos == BotPOS.VERB) {
             pos = POS.v;
         }
         List<Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, pos);

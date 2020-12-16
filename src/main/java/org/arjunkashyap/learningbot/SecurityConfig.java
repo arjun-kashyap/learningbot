@@ -7,7 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableWebSecurity // To allow H2 database management from browser
+@EnableWebSecurity // This class is added only to allow H2 database management from browser
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override

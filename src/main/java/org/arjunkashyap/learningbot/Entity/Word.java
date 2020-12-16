@@ -2,10 +2,10 @@ package org.arjunkashyap.learningbot.Entity;
 
 import java.util.Objects;
 
-public class WordClassification {
-    private String word;
+public class Word {
+    protected String word;
     private String lemma;
-    private String pos;
+    protected BotPOS pos;
 
     public String getWord() {
         return word;
@@ -23,11 +23,11 @@ public class WordClassification {
         this.lemma = lemma;
     }
 
-    public String getPos() {
+    public BotPOS getPos() {
         return pos;
     }
 
-    public void setPos(String pos) {
+    public void setPos(BotPOS pos) {
         this.pos = pos;
     }
 
@@ -35,7 +35,7 @@ public class WordClassification {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WordClassification that = (WordClassification) o;
+        Word that = (Word) o;
         return word.equals(that.word) &&
                 lemma.equals(that.lemma) &&
                 pos.equals(that.pos);

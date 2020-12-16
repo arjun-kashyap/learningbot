@@ -1,10 +1,9 @@
 package org.arjunkashyap.learningbot.common;
 
-import edu.cmu.lti.ws4j.util.PorterStemmer;
 import edu.stanford.nlp.pipeline.CoreEntityMention;
 import org.arjunkashyap.learningbot.Entity.BotPOS;
 import org.arjunkashyap.learningbot.Entity.Question;
-import org.arjunkashyap.learningbot.Entity.WordClassification;
+import org.arjunkashyap.learningbot.Entity.Word;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -22,17 +21,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class SentenceAnalyzer implements InitializingBean {
     @Autowired
     private Environment env;
     private StanfordCoreNLP pipeline;
-
-    /*
-
-     */
 
     public static void main(String[] args) {//TODO: Remove this
         Properties props = new Properties();
@@ -42,7 +36,7 @@ public class SentenceAnalyzer implements InitializingBean {
         props.setProperty("parse.maxlen", "100");
         SentenceAnalyzer s = new SentenceAnalyzer();
         s.pipeline = new StanfordCoreNLP(props);
-        List<WordClassification> x = s.getPosElements("What is the meaning of word duck?");
+        List<Word> x = s.getPosElements("Did John and their young mother aged 60  die of pneumonia?");
         System.out.println(x);
     }
 
@@ -72,42 +66,75 @@ public class SentenceAnalyzer implements InitializingBean {
         return processedQuestion;
     }
 
-    public List<WordClassification> getPosElements(String text) {
-        List<WordClassification> classifiedList = new ArrayList<>();
+    public List<Word> getPosElements(String text) {
+        List<Word> classifiedList = new ArrayList<>();
         CoreDocument document = pipeline.processToCoreDocument(text);
-        WordClassification word;
-        WordClassification previousWord = null;
+        Word word;
+        Word previousNoun = null;
         boolean whWordFound = false;
+
+        List<CoreEntityMention> entitiesList = document.entityMentions();
+        Map<CoreLabel, CoreEntityMention> labelEntityMap = new HashMap<>();
+        for (CoreEntityMention em : entitiesList) { //Named entities. Some issue. "His" is marked as Entity!
+            for (CoreLabel tok : em.tokens()) {
+                labelEntityMap.put(tok, em);
+            }
+        }
+
         List<CoreLabel> tokens = document.tokens();
         if (tokens.size() > 0) {
             for (CoreLabel tok : tokens) {
-                if ((tok.tag().equals("IN") || tok.tag().equals("TO")) && (previousWord != null) && (previousWord.getPos().startsWith("NN"))) { //Take care of "preposition"
-                    previousWord.setPos("X-DERVB"); //Derivationally related form
-                }
-              /* if (!tok.ner().equals("O") && !tok.tag().equals("CD")) { //Named entity, skip. Don't skip CD
-                    previousWord = null; //TODO: check it? Added it without much thought :)
-                } else {
-
-                */
-                if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((tok.tag().startsWith("NN") || tok.tag().startsWith("VB") || tok.tag().startsWith("W")))) { //tok.tag().equals("CD") ||
-                    word = new WordClassification();
+                if (labelEntityMap.get(tok) != null) {
+                    CoreEntityMention entity = labelEntityMap.get(tok);
+                    if (entitiesList.contains(entity)) { //else already added a multi-word entity
+                        System.out.println("Adding entity " + entity.text());//entity put
+                        word = new Word();
+                        word.setLemma(entity.text().toLowerCase());
+                        word.setWord(entity.text().toLowerCase());
+                        word.setPos(BotPOS.ENTITY);
+                        classifiedList.add(word);
+                        entitiesList.remove(entity);
+                        //System.out.println("Removing "+tok.lemma()+" ");
+                    }
+                    previousNoun = null;
+                } else if ((tok.tag().equals("IN") || tok.tag().equals("TO")) &&
+                        (previousNoun != null) &&
+                        (previousNoun.getPos() == BotPOS.NOUN)) { //Take care of "preposition"
+                    previousNoun.setPos(BotPOS.DERIVE_VERB);
+                    previousNoun = null;
+                } else if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((
+                                    tok.tag().startsWith("NN")||
+                                    tok.tag().startsWith("VB") ||
+                                    tok.tag().equals("CD") ||
+                                    tok.tag().startsWith("JJ") ||
+                                    tok.tag().startsWith("RB") ||
+                                    tok.tag().startsWith("W")))) { // ||
+                    word = new Word();
                     word.setLemma(tok.lemma().toLowerCase());
                     word.setWord(tok.word().toLowerCase());
-                    word.setPos(tok.tag());
                     classifiedList.add(word);
+                    previousNoun = null;
                     if (tok.tag().startsWith("W")) {
+                        word.setPos(BotPOS.WH_QUESTION);
                         whWordFound = true;
-                        previousWord = null;
+                        if (tok.lemma().toLowerCase().equals("be")) {
+                            word.setLemma("be-question");
+                        }
                     } else if (tok.tag().startsWith("NN")) {
-                        word.setPos("NN");
-                        previousWord = word;
-                    } else {
-                        previousWord = null;
+                        word.setPos(BotPOS.NOUN);
+                        previousNoun = word;
+                    } else if (tok.tag().startsWith("VB")) {
+                        word.setPos(BotPOS.VERB);
+                    } else if (tok.tag().equals("CD")) {// CDs are not coming after we added NER
+                        word.setPos(BotPOS.CARDINAL_NUMBER);
+                    } else if (tok.tag().startsWith("JJ")){
+                        word.setPos(BotPOS.ADJECTIVE);
+                    } else if (tok.tag().startsWith("RB")){
+                        word.setPos(BotPOS.ADVERB);
                     }
                 } else {
-                    previousWord = null;
+                    previousNoun = null;
                 }
-                //}
             }
 
             if (!whWordFound && classifiedList.size() > 0) { // Use the first token as the WH clause
@@ -115,41 +142,18 @@ public class SentenceAnalyzer implements InitializingBean {
                 if (tok.lemma().equals(classifiedList.get(0).getLemma())) {
                     word = classifiedList.get(0);
                 } else { // first token did not get added to the list due to stop list etc
-                    word = new WordClassification();
+                    word = new Word();
                     word.setLemma(tok.lemma().toLowerCase());
                     word.setWord(tok.word().toLowerCase());
-                    word.setPos("W-DERIVED");
+                    if (tok.lemma().toLowerCase().equals("be")) {
+                        word.setLemma("be-question");
+                    }
                     classifiedList.add(0, word);
                 }
-                word.setPos("W-DERIVED");
+                word.setPos(BotPOS.WH_QUESTION);
             }
         }
-
-        for (CoreEntityMention em : document .entityMentions()) { //Named entities
-            for (CoreLabel tok: em.tokens()) {
-                word = new WordClassification();
-                word.setLemma(tok.lemma().toLowerCase());
-                word.setWord(tok.word().toLowerCase());
-                word.setPos("CD"); //check if detected as a CD before
-                if (!classifiedList.contains(word)) {
-                    word.setPos("NN");
-                    if (classifiedList.contains(word)) {
-                        classifiedList.get(classifiedList.indexOf(word)).setPos("ENTITY");
-                    } else {
-                        word.setPos("X-DERVB");
-                        if (classifiedList.contains(word)) {
-                            classifiedList.get(classifiedList.indexOf(word)).setPos("ENTITY");
-                        } else {
-                            // Not sure why we will come here
-                            System.out.println("TODO: check why we came here: " + word.getLemma() + word.getPos());
-                            word.setPos("ENTITY");
-                            classifiedList.add(word);
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println(classifiedList);
+        //System.out.println(classifiedList);
         return classifiedList;
     }
 

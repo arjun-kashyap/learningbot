@@ -15,4 +15,24 @@ public class WebComponentsController {
         model.addAttribute("appName", appName);
         return "home";
     }
+    @GetMapping("/admin")
+    public String adminPage(Model model) {
+        model.addAttribute("appName", appName);
+        return "admin";
+    }
+    @GetMapping("/adminscripts.js")
+    public String adminScripts(Model model) {
+        model.addAttribute("appName", appName);
+        return "adminscripts.js";
+    }
+    @GetMapping("/commonscripts.js")
+    public String commonScripts(Model model) {
+        model.addAttribute("appName", appName);
+        return "commonscripts.js";
+    }
+    @GetMapping("/homepagescripts.js")
+    public String homepageScripts(Model model) {
+        model.addAttribute("appName", appName);
+        return "homepagescripts.js";
+    }
 }
