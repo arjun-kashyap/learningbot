@@ -3,6 +3,7 @@ package org.arjunkashyap.learningbot.common;
 import edu.stanford.nlp.pipeline.CoreEntityMention;
 import org.arjunkashyap.learningbot.Entity.BotPOS;
 import org.arjunkashyap.learningbot.Entity.Question;
+import org.arjunkashyap.learningbot.Entity.Synonym;
 import org.arjunkashyap.learningbot.Entity.Word;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -27,6 +28,8 @@ public class SentenceAnalyzer implements InitializingBean {
     @Autowired
     private Environment env;
     private StanfordCoreNLP pipeline;
+    @Autowired
+    WordnetUtils wordnetUtils;
 
     public static void main(String[] args) {//TODO: Remove this
         Properties props = new Properties();
@@ -100,7 +103,13 @@ public class SentenceAnalyzer implements InitializingBean {
                 } else if ((tok.tag().equals("IN") || tok.tag().equals("TO")) &&
                         (previousNoun != null) &&
                         (previousNoun.getPos() == BotPOS.NOUN)) { //Take care of "preposition"
-                    previousNoun.setPos(BotPOS.DERIVE_VERB);
+                    Synonym verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
+                    if (verb != null) {
+                        previousNoun.setWord(verb.getWord());
+                        previousNoun.setLemma(verb.getLemma());
+                        previousNoun.setPos(BotPOS.VERB);
+                    }
+                   // previousNoun.setPos(BotPOS.DERIVE_VERB);
                     previousNoun = null;
                 } else if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((
                                     tok.tag().startsWith("NN")||
@@ -153,7 +162,7 @@ public class SentenceAnalyzer implements InitializingBean {
                 word.setPos(BotPOS.WH_QUESTION);
             }
         }
-        //System.out.println(classifiedList);
+        System.out.println(classifiedList);
         return classifiedList;
     }
 
@@ -161,7 +170,7 @@ public class SentenceAnalyzer implements InitializingBean {
     public void afterPropertiesSet() {
         Properties props = new Properties();
         props.setProperty("annotators", env.getProperty("corenlp.annotators"));
-        props.setProperty("ner.applyFineGrained", "false"); //TODO: get from properties
+        props.setProperty("ner.applyFineGrained", "true"); //TODO: get from properties
         props.setProperty("parse.model", env.getProperty("corenlp.parse.model"));
         props.setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
         pipeline = new StanfordCoreNLP(props);

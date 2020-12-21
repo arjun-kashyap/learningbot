@@ -16,7 +16,7 @@ import java.util.*;
 public class AnswerProcessor {//TODO: get only the best question match by score. Score the questions properly
     @Autowired private JdbcTemplate jtm;
     @Autowired private KnowledgeProcessor knowledgeProcessor;
-    private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_searcher_score " +
+    private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_score_main, max_possible_score_synsets " +
             "from question q, answer a, question_answer_relation r " +
              "where q.question_id = r.question_id " +
             "and r.answer_id=a.answer_id " +
@@ -34,13 +34,19 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
                         public void processRow(ResultSet rs) throws SQLException {
                             float voteScore;
                             match.getQuestion().setQuestionString(rs.getString("question"));
-                            match.getQuestion().setMaxPossibleSearcherScore(rs.getFloat("max_possible_searcher_score"));
+                            match.getQuestion().setMaxPossibleScoreForMainWords(rs.getFloat("max_possible_score_main"));
+                            match.getQuestion().setMaxPossibleScoreForSynsets(rs.getFloat("max_possible_score_synsets"));
                             if (rs.getBoolean("manual"))
                                 voteScore = 1;
                             else
                                 voteScore = Math.max(rs.getFloat("votes"), 10)/10; //TODO: Make this a property/database value
                             match.setVoteScore(voteScore);
-                            match.setSearcherScore(match.getSearcherScore()/match.getQuestion().getMaxPossibleSearcherScore());
+                            if (match.getSynonymScore() == 1) {
+                                match.setSearcherScore(match.getSearcherScore()/match.getQuestion().getMaxPossibleScoreForMainWords());
+                            } else {
+                                match.setSearcherScore(match.getSearcherScore()/match.getQuestion().getMaxPossibleScoreForSynsets());
+                            }
+                            //match.setSearcherScore(match.getSearcherScore()/match.getQuestion().getMaxPossibleSearcherScore());
                             Answer answer = new Answer();
                             answer.setAnswerId(rs.getInt("answer_id"));
                             answer.setAnswerString(rs.getString("answer"));
@@ -89,6 +95,7 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
         Collections.sort(possibleMatches, Comparator.comparingDouble(Match::getWeightedFinalScore).reversed());
         Set<Match> topMatches = new TreeSet<>();
         for (Match match: possibleMatches) {//Putting in Set to remove duplicates
+            System.out.println(match);
             topMatches.add(match);
         }
         List<Match> matchList = new ArrayList<>();

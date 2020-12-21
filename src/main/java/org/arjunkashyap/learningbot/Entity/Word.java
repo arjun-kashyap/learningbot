@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class Word {
     protected String word;
-    private String lemma;
+    protected String lemma;
     protected BotPOS pos;
 
     public String getWord() {

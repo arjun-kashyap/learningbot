@@ -6,6 +6,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.MMapDirectory;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -17,49 +19,58 @@ import java.nio.file.Paths;
 
 @Component
 public class SearchIndex {
-    private IndexSearcher searcher;
-    private final StandardAnalyzer analyzer = new StandardAnalyzer();
-    private Path indexPath = Paths.get("/Users/Suresh/demo_lucene/");//TODO: properties;
-    private IndexReader reader;
-    private Directory index = new MMapDirectory(indexPath);
+    private IndexSearcher mainSearcher;
+    private final StandardAnalyzer mainAnalyzer = new StandardAnalyzer();
+    private Path mainIndexPath = Paths.get("/Users/Suresh/demo_lucene/");//TODO: properties;
+    private IndexReader mainIndexReader;
+    private Directory mainIndex = new MMapDirectory(mainIndexPath);
 
     public SearchIndex() throws IOException {
     }
 
-    public IndexWriter getIndexWriterForWrite() throws IOException {
-        if (reader != null) {
+    public IndexWriter getMainIndexWriterForWrite() throws IOException {
+        if (mainIndexReader != null) {
             try {
-                reader.close();
-                reader = null;
-                searcher = null;
+                mainIndexReader.close();
+                mainIndexReader = null;
+                mainSearcher = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        FileUtils.deleteDirectory(indexPath.toFile());
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        IndexWriter indexWriter = new IndexWriter(index, config);
+        FileUtils.deleteDirectory(mainIndexPath.toFile());
+        IndexWriterConfig config = new IndexWriterConfig(mainAnalyzer);
+        IndexWriter indexWriter = new IndexWriter(mainIndex, config);
         return indexWriter;
     }
 
-    public void closeIndexWriter(IndexWriter indexWriter) throws IOException {
+    public void closeMainIndexWriter(IndexWriter indexWriter) throws IOException {
         indexWriter.close();
     }
 
     public IndexSearcher getIndexSearcher() {
-        if (reader == null) {
+        if (mainIndexReader == null) {
             try {
-                reader = DirectoryReader.open(index);
-                searcher = new IndexSearcher(reader);
+                mainIndexReader = DirectoryReader.open(mainIndex);
+                mainSearcher = new IndexSearcher(mainIndexReader);
+                Similarity sim = new  BM25Similarity() {
+                    // We are doing this because the synsets occur many times in the index (for each combination).
+                    // This boosts the match of english words rather than synsets
+                    @Override
+                    public float idf(long freq, long count) {
+                        return 1;
+                    }
+                };
+                mainSearcher.setSimilarity(sim);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return searcher;
+        return mainSearcher;
     }
 
-    public StandardAnalyzer getAnalyzer() {
-        return analyzer;
+    public StandardAnalyzer getMainAnalyzer() {
+        return mainAnalyzer;
     }
 }

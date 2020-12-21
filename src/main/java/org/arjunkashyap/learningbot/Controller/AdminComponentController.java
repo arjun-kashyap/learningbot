@@ -47,7 +47,8 @@ public class AdminComponentController {
         for (AdminQuestionAnswerRelation r: listOfQuestions) {
             s.append("\n"+r.getQuestion().getQuestionId()+
                     "\t"+r.getQuestion().getQuestionString()+
-                    "\t"+r.getQuestion().getMaxPossibleSearcherScore()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForMainWords()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForSynsets()+
                     "\t"+r.getAnswer().getAnswerId()+
                     "\t"+r.getAnswer().getAnswerString()+
                     "\t"+r.isManual()+

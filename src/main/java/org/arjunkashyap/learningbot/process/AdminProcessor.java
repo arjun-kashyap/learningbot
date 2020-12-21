@@ -38,7 +38,8 @@ public class AdminProcessor {
                 Question question = new Question();
                 question.setQuestionId(rs.getInt("question_id"));
                 question.setQuestionString(rs.getString("question"));
-                question.setMaxPossibleSearcherScore(rs.getFloat("max_possible_searcher_score"));
+                question.setMaxPossibleScoreForMainWords(rs.getFloat("max_possible_score_main"));
+                question.setMaxPossibleScoreForSynsets(rs.getFloat("max_possible_score_synsets"));
                 r.setQuestion(question);
                 Answer answer = new Answer();
                 answer.setAnswerId(rs.getInt("answer_id"));

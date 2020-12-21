@@ -5,8 +5,8 @@ import edu.cmu.lti.jawjaw.pobj.Link;
 import java.util.Objects;
 
 public class Synonym extends Word implements Comparable<Synonym> {
-    private int score;
-    private Link linkType;
+    protected int score;
+    protected Link linkType;
 
     public int getScore() {
         return score;

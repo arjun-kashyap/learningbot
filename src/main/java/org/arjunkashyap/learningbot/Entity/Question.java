@@ -1,14 +1,15 @@
 package org.arjunkashyap.learningbot.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
 public class Question implements Serializable {
     private int questionId;
     private String questionString;
-    private float maxPossibleSearcherScore;
+    private float maxPossibleScoreForMainWords;
+    private float maxPossibleScoreForSynsets;
+
     @JsonIgnore
     private boolean isQuestion;
     private String noun;
@@ -64,12 +65,20 @@ public class Question implements Serializable {
         this.tree = tree;
     }
 
-    public float getMaxPossibleSearcherScore() {
-        return maxPossibleSearcherScore;
+    public float getMaxPossibleScoreForMainWords() {
+        return maxPossibleScoreForMainWords;
     }
 
-    public void setMaxPossibleSearcherScore(float maxPossibleSearcherScore) {
-        this.maxPossibleSearcherScore = maxPossibleSearcherScore;
+    public void setMaxPossibleScoreForMainWords(float maxPossibleScoreForMainWords) {
+        this.maxPossibleScoreForMainWords = maxPossibleScoreForMainWords;
+    }
+
+    public float getMaxPossibleScoreForSynsets() {
+        return maxPossibleScoreForSynsets;
+    }
+
+    public void setMaxPossibleScoreForSynsets(float maxPossibleScoreForSynsets) {
+        this.maxPossibleScoreForSynsets = maxPossibleScoreForSynsets;
     }
 
     @Override
