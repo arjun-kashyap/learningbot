@@ -7,6 +7,7 @@ import java.util.Objects;
 
 public class SynonymSynset extends Synonym {
     private Synset synset;
+    private int useCount;
 
     public Synset getSynset() {
         return synset;
@@ -14,6 +15,14 @@ public class SynonymSynset extends Synonym {
 
     public void setSynset(Synset synset) {
         this.synset = synset;
+    }
+
+    public int getUseCount() {
+        return useCount;
+    }
+
+    public void setUseCount(int useCount) {
+        this.useCount = useCount;
     }
 
     @Override
@@ -33,7 +42,7 @@ public class SynonymSynset extends Synonym {
     public String toString() {
         return "SynonymSynset{" +
                 "synset=" + synset.getOffset() +
-                ", linkType=" + linkType +
+                ", useCount=" + useCount +
                 '}';
     }
 }

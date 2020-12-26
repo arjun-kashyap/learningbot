@@ -1,6 +1,7 @@
 package org.arjunkashyap.learningbot.process;
 
 import edu.cmu.lti.jawjaw.pobj.Link;
+import net.sf.extjwnl.JWNLException;
 import org.arjunkashyap.learningbot.Entity.*;
 import org.arjunkashyap.learningbot.common.WordnetUtils;
 import org.arjunkashyap.learningbot.common.SearchIndex;
@@ -36,7 +37,7 @@ public class KnowledgeProcessor {
     @Autowired
     WordnetUtils wordnetUtils;
 
-    public List<Match> search(String question) {
+    public List<Match> search(String question) throws JWNLException {
         List<Match> response = new ArrayList<>();
         int exactCount, synonymCount, hypernymCount, hyponymCount;
         int hitsPerPage, totalHitsThreshold;
@@ -142,12 +143,12 @@ public class KnowledgeProcessor {
                         question.getMaxPossibleScoreForMainWords(), question.getMaxPossibleScoreForSynsets(), question.getQuestionId());
                 i++;
             }
-        } catch (IOException | ParseException e) {
+        } catch (IOException | ParseException | JWNLException e) {
             e.printStackTrace();
         }
     }
 
-    private List<String> addQuestionToIndex(IndexWriter indexWriter, Question question) throws IOException {
+    private List<String> addQuestionToIndex(IndexWriter indexWriter, Question question) throws IOException, JWNLException {
         Document doc;
         List<Synonym> mainSentence = new ArrayList<>();
         List<List<SynonymSynset>> listOfRelatedSynsets = new ArrayList<>();

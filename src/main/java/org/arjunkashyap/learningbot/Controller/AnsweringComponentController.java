@@ -1,5 +1,6 @@
 package org.arjunkashyap.learningbot.Controller;
 
+import net.sf.extjwnl.JWNLException;
 import org.arjunkashyap.learningbot.Entity.AnswerResponse;
 import org.arjunkashyap.learningbot.Entity.BotRequest;
 import org.arjunkashyap.learningbot.Entity.Match;
@@ -22,7 +23,7 @@ public class AnsweringComponentController {
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
-    public AnswerResponse postQuestion(@RequestBody BotRequest request) {
+    public AnswerResponse postQuestion(@RequestBody BotRequest request) throws JWNLException {
         long startTime = System.currentTimeMillis();
         Question question = sentenceAnalyzer.processQuestion(request.getInput());
         List<Match> matches = answerProcessor.getAnswer(question);

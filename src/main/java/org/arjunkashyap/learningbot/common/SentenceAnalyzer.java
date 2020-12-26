@@ -1,6 +1,8 @@
 package org.arjunkashyap.learningbot.common;
 
 import edu.stanford.nlp.pipeline.CoreEntityMention;
+import net.sf.extjwnl.JWNLException;
+import net.sf.extjwnl.data.IndexWord;
 import org.arjunkashyap.learningbot.Entity.BotPOS;
 import org.arjunkashyap.learningbot.Entity.Question;
 import org.arjunkashyap.learningbot.Entity.Synonym;
@@ -31,7 +33,7 @@ public class SentenceAnalyzer implements InitializingBean {
     @Autowired
     WordnetUtils wordnetUtils;
 
-    public static void main(String[] args) {//TODO: Remove this
+    public static void main(String[] args) throws JWNLException {//TODO: Remove this
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,parse,lemma,ner");
         props.setProperty("ner.applyFineGrained", "false"); //TODO: get from properties
@@ -69,11 +71,10 @@ public class SentenceAnalyzer implements InitializingBean {
         return processedQuestion;
     }
 
-    public List<Word> getPosElements(String text) {
+    public List<Word> getPosElements(String text) throws JWNLException {
         List<Word> classifiedList = new ArrayList<>();
         CoreDocument document = pipeline.processToCoreDocument(text);
-        Word word;
-        Word previousNoun = null;
+        Word word, previousWord;
         boolean whWordFound = false;
 
         List<CoreEntityMention> entitiesList = document.entityMentions();
@@ -99,18 +100,25 @@ public class SentenceAnalyzer implements InitializingBean {
                         entitiesList.remove(entity);
                         //System.out.println("Removing "+tok.lemma()+" ");
                     }
-                    previousNoun = null;
-                } else if ((tok.tag().equals("IN") || tok.tag().equals("TO")) &&
-                        (previousNoun != null) &&
-                        (previousNoun.getPos() == BotPOS.NOUN)) { //Take care of "preposition"
-                    Synonym verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
-                    if (verb != null) {
-                        previousNoun.setWord(verb.getWord());
-                        previousNoun.setLemma(verb.getLemma());
-                        previousNoun.setPos(BotPOS.VERB);
+                } else if (tok.tag().equals("IN") || tok.tag().equals("TO")) { //Take care of "preposition"
+                    previousWord = classifiedList.get(classifiedList.size() - 1);
+                    if  ((previousWord != null) && (previousWord.getPos() == BotPOS.NOUN)) {
+                        Synonym verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
+                        if (verb != null) {
+                            previousWord.setWord(verb.getWord());
+                            previousWord.setLemma(verb.getLemma());
+                            previousWord.setPos(BotPOS.VERB);
+                        }
                     }
-                   // previousNoun.setPos(BotPOS.DERIVE_VERB);
-                    previousNoun = null;
+                } else if (tok.tag().equals("RP")) { //Take care of "particle"
+                    previousWord = classifiedList.get(classifiedList.size() - 1);
+                    if  ((previousWord != null) && (previousWord.getPos() == BotPOS.VERB)) {
+                        IndexWord verb = wordnetUtils.wordInWordNet(BotPOS.VERB, previousWord.getLemma() + " " + tok.lemma());
+                        if (verb != null) {
+                            previousWord.setWord(previousWord.getWord() + " " + tok.word());
+                            previousWord.setLemma(previousWord.getLemma() + " " + tok.lemma());
+                        }
+                    }
                 } else if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((
                                     tok.tag().startsWith("NN")||
                                     tok.tag().startsWith("VB") ||
@@ -122,7 +130,6 @@ public class SentenceAnalyzer implements InitializingBean {
                     word.setLemma(tok.lemma().toLowerCase());
                     word.setWord(tok.word().toLowerCase());
                     classifiedList.add(word);
-                    previousNoun = null;
                     if (tok.tag().startsWith("W")) {
                         word.setPos(BotPOS.WH_QUESTION);
                         whWordFound = true;
@@ -131,7 +138,6 @@ public class SentenceAnalyzer implements InitializingBean {
                         }
                     } else if (tok.tag().startsWith("NN")) {
                         word.setPos(BotPOS.NOUN);
-                        previousNoun = word;
                     } else if (tok.tag().startsWith("VB")) {
                         word.setPos(BotPOS.VERB);
                     } else if (tok.tag().equals("CD")) {// CDs are not coming after we added NER
@@ -141,8 +147,6 @@ public class SentenceAnalyzer implements InitializingBean {
                     } else if (tok.tag().startsWith("RB")){
                         word.setPos(BotPOS.ADVERB);
                     }
-                } else {
-                    previousNoun = null;
                 }
             }
 

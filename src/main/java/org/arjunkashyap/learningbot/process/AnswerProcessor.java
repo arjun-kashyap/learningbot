@@ -1,5 +1,6 @@
 package org.arjunkashyap.learningbot.process;
 
+import net.sf.extjwnl.JWNLException;
 import org.arjunkashyap.learningbot.Entity.Answer;
 import org.arjunkashyap.learningbot.Entity.Match;
 import org.arjunkashyap.learningbot.Entity.Question;
@@ -22,7 +23,7 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
             "and r.answer_id=a.answer_id " +
             "and q.question_id = ?";
 
-    public List<Match> getAnswer(Question inputQuestion) {
+    public List<Match> getAnswer(Question inputQuestion) throws JWNLException {
         List<Match> possibleMatches;
         if (inputQuestion.getIsQuestion()) {
             possibleMatches = knowledgeProcessor.search(inputQuestion.getQuestionString());
