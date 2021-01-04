@@ -67,8 +67,10 @@ public class KnowledgeProcessor {
                 }
                 combination.add(synonymSynset);
             }
+            if (!(combination.containsAll(words)&&words.containsAll(combination))) { //We could not get synset combination for any of the words in Q
+                synsetCombinations.add(combination);
+            }
 
-            synsetCombinations.add(combination);
             System.out.println("Total search combinations: "+synsetCombinations.size());
             for (List<Word> synsetCombination : synsetCombinations) {
                 collector = TopScoreDocCollector.create(hitsPerPage, totalHitsThreshold);
