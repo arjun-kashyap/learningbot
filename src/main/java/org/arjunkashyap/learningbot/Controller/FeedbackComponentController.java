@@ -2,6 +2,7 @@ package org.arjunkashyap.learningbot.Controller;
 
 import org.arjunkashyap.learningbot.Entity.*;
 import org.arjunkashyap.learningbot.common.Utilities;
+import org.arjunkashyap.learningbot.process.FeedbackProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 @RestController
 public class FeedbackComponentController {
     @Autowired private Utilities<Map<String, Object>> utilities;
+    @Autowired private FeedbackProcessor feedbackProcessor;
 
     @PostMapping(
             value = "/receiveFeedback", consumes = "application/json", produces = "application/json")
@@ -70,6 +73,40 @@ public class FeedbackComponentController {
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
         //TODO: Log each interaction and the response in table
+        return answerResponse;
+    }
+
+    @PostMapping(
+            value = "/markAsCorrect", consumes = "application/json", produces = "application/json")
+    public AnswerResponse markAsCorrect(@RequestBody BotRequest request) {
+        long startTime = System.currentTimeMillis();
+        AnswerResponse answerResponse = new AnswerResponse();
+        Map<String, Object> context = null;
+        context = utilities.deserializeFromString(request.getContext());
+        int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
+        Question question = (Question) context.get("QUESTION");
+        List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
+        Match lastMatch = matches.get(lastAnswerIndex);
+        System.out.println(lastMatch);
+        feedbackProcessor.incrementVote(lastMatch, question);
+
+        return answerResponse;
+    }
+
+    @PostMapping(
+            value = "/markAsIncorrect", consumes = "application/json", produces = "application/json")
+    public AnswerResponse markAsIncorrect(@RequestBody BotRequest request) {
+        long startTime = System.currentTimeMillis();
+        AnswerResponse answerResponse = new AnswerResponse();
+        Map<String, Object> context = null;
+        context = utilities.deserializeFromString(request.getContext());
+        int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
+        Question question = (Question) context.get("QUESTION");
+        List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
+        Match lastMatch = matches.get(lastAnswerIndex);
+        System.out.println(lastMatch);
+        feedbackProcessor.decrementVote(lastMatch, question);
+
         return answerResponse;
     }
 

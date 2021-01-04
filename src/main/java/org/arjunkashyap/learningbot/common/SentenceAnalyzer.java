@@ -101,7 +101,12 @@ public class SentenceAnalyzer implements InitializingBean {
                         //System.out.println("Removing "+tok.lemma()+" ");
                     }
                 } else if (tok.tag().equals("IN") || tok.tag().equals("TO")) { //Take care of "preposition"
-                    previousWord = classifiedList.get(classifiedList.size() - 1);
+                    if (classifiedList.size() >= 1) { //TODO: Check this
+                        previousWord = classifiedList.get(classifiedList.size() - 1);
+                    }
+                    else {
+                        previousWord = null;
+                    }
                     if  ((previousWord != null) && (previousWord.getPos() == BotPOS.NOUN)) {
                         Synonym verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
                         if (verb != null) {

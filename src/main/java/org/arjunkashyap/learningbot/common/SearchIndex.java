@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 public class SearchIndex {
     private IndexSearcher mainSearcher;
     private final StandardAnalyzer mainAnalyzer = new StandardAnalyzer();
-    private Path mainIndexPath = Paths.get("/Users/Suresh/demo_lucene/");//TODO: properties;
+    private Path mainIndexPath = Paths.get("/Users/Arjun/demo_lucene/");//TODO: properties;
     private IndexReader mainIndexReader;
     private Directory mainIndex = new MMapDirectory(mainIndexPath);
 

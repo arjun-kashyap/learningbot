@@ -47,16 +47,32 @@ public class KnowledgeProcessor {
         hitsPerPage = totalHitsThreshold = 2; //TODO: Move to properties/database
 
         List<Word> words = sentenceAnalyzer.getPosElements(question); //decompose the question string into words with POS tags
-        List<List<Word>> synsetCombinations;
+        List<List<Word>> synsetCombinations = new ArrayList<>();
         int limit = 100; //No. of searches to run. TODO: get from properties
 
         try {
-            synsetCombinations = getVariousSynsetCombinationsForWords(words, limit);
+            synsetCombinations.add(words); //Add the input words as the first set
+
+            Word synonymSynset;
+            List<Word> combination = new ArrayList<>();
+
+            for (Word word : words) {         // TODO: Handle condition where there are no synsets for any words
+                if (word.getPos() == BotPOS.CARDINAL_NUMBER || word.getPos() == BotPOS.WH_QUESTION) {
+                    synonymSynset = word;
+                } else {
+                    synonymSynset = wordnetUtils.getSynsetsOffsetInSameLevel(word.getLemma(), word.getPos());
+                    if (synonymSynset == null) {
+                        synonymSynset = word;
+                    }
+                }
+                combination.add(synonymSynset);
+            }
+
+            synsetCombinations.add(combination);
             System.out.println("Total search combinations: "+synsetCombinations.size());
-            outerloop:
-            for (List<Word> combination : synsetCombinations) {
+            for (List<Word> synsetCombination : synsetCombinations) {
                 collector = TopScoreDocCollector.create(hitsPerPage, totalHitsThreshold);
-                hits = query(formQuery(combination), collector);
+                hits = query(formQuery(synsetCombination), collector);
                 if (hits != null) {
                     //System.out.println("Found " + hits.length + " hits.");
                     for (int i = 0; i < hits.length; ++i) {
@@ -381,53 +397,12 @@ public class KnowledgeProcessor {
             searchIndex.getIndexSearcher().search(q, collector);
             hits = collector.topDocs().scoreDocs;
         }
-        System.out.println("Query is:" + queryToUse+"highest hit: "+hits[0].score);
+        if (hits.length == 0) {
+            System.out.println("No results.");
+        }
+        else {
+            System.out.println("Query is:" + queryToUse + "highest hit: " + hits[0].score);
+        }
         return hits;
-    }
-    private List<List<Word>> getVariousSynsetCombinationsForWords(List<Word> inputWords, int limit) {
-        List<List<Word>> response = new ArrayList<>();
-        response.add(inputWords); //Add the input words as the first set
-
-        List<SynonymSynset> synsetList;
-        List<Word> words;
-
-        List<List<Word>> synsetListForEachWord = new ArrayList<>();
-        for (Word word : inputWords) {
-            if (word.getPos() == BotPOS.CARDINAL_NUMBER || word.getPos() == BotPOS.WH_QUESTION) {
-                words = new ArrayList<>();
-                words.add(word);
-                synsetListForEachWord.add(words);
-            } else {
-                synsetList = wordnetUtils.getSynsetsOffsetInSameLevel(word.getLemma(), word.getPos());
-                if (synsetList != null && synsetList.size() > 0) {
-                    //Adding only upto what we can run
-                  synsetListForEachWord.add((List<Word>)(List<?>) synsetList.subList(0,Math.min(synsetList.size(), Math.max(2,limit/(inputWords.size()-1)))));
-                } else {
-                    words = new ArrayList<>();
-                    words.add(word);
-                    synsetListForEachWord.add(words);
-                }
-            }
-        }
-
-        int product = 1;
-        int[] counts = new int[synsetListForEachWord.size()];
-        for (int i = 0; i < synsetListForEachWord.size(); i++) {
-            counts[i] = synsetListForEachWord.get(i).size();
-            product *= counts[i];
-        }
-        int[][] allCombinations = Utilities.getAllCombinations(counts, product);
-        outerloop:
-        for (int j = 0; j < product; j++) {
-            List<Word> combination = new ArrayList<>();
-            for (int i = 0; i < synsetListForEachWord.size(); i++) {
-                if (j < product) { //&& listOfRelatedSynsets.get(i) != null
-                    Word synonymSynset = synsetListForEachWord.get(i).get(allCombinations[i][j]);
-                    combination.add(synonymSynset);
-                }
-            }
-            response.add(combination);
-        }
-        return response;
     }
 }

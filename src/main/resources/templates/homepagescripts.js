@@ -32,3 +32,27 @@ function getNextAnswer() {
                                                                      }
                           );
 }
+
+function markAsCorrect() {
+    payload = JSON.stringify({"context":context});
+    var conversationTextarea = document.getElementById("conversation");
+    var conversation = conversationTextarea.value;
+    postRequestToServer("markAsCorrect", payload, function(response) {
+                                            conversationTextarea.value = conversation + "ChatBot: " + response.topAnswer.answerString + "\n";
+                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
+                                            context = response.context;
+                                                                     }
+                          );
+}
+
+function markAsIncorrect() {
+    payload = JSON.stringify({"context":context});
+    var conversationTextarea = document.getElementById("conversation");
+    var conversation = conversationTextarea.value;
+    postRequestToServer("markAsIncorrect", payload, function(response) {
+                                            conversationTextarea.value = conversation + "ChatBot: " + response.topAnswer.answerString + "\n";
+                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
+                                            context = response.context;
+                                                                     }
+                          );
+}

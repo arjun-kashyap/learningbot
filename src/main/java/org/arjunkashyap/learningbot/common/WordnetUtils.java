@@ -108,7 +108,7 @@ public class WordnetUtils {
         return synonyms;
     }
 
-    public List<SynonymSynset> getSynsetsOffsetInSameLevel(String word, BotPOS inputPos) {
+    public SynonymSynset getSynsetsOffsetInSameLevel(String word, BotPOS inputPos) {
         IndexWord indexWord = null;
         List<SynonymSynset> synsetOffsets = new ArrayList<>();
         try {
@@ -120,9 +120,9 @@ public class WordnetUtils {
             /*for (SynonymSynset synonymSynset : getSynsetsInSameLevel(indexWord, inputPos)) {
                 synsetOffsets.add(synonymSynset.getLemma());
             }*/
-            return getSynsetsInSameLevel(indexWord, inputPos);
+            return getSynsetsInSameLevel(indexWord, inputPos).get(0);
         }
-        return synsetOffsets;
+        return null;
     }
 
     private List<SynonymSynset> getSynsetsInSameLevel(IndexWord word, BotPOS inputPos) {

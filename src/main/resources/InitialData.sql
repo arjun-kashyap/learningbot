@@ -5,6 +5,12 @@ DROP TABLE IF EXISTS QUESTION_ANSWER_RELATION;
 DROP TABLE IF EXISTS PART_OF_SPEECH_QUESTION;
 DROP TABLE IF EXISTS VARIABLES;
 DROP TABLE IF EXISTS INTERACTION;
+DROP SEQUENCE IF EXISTS QUESTION_SEQUENCE;
+DROP SEQUENCE IF EXISTS ANSWER_SEQUENCE;
+
+CREATE SEQUENCE QUESTION_SEQUENCE START WITH 100 INCREMENT BY 1;
+CREATE SEQUENCE ANSWER_SEQUENCE START WITH 100 INCREMENT BY 1;
+
 
 CREATE TABLE ANSWER (answer_id INT  PRIMARY KEY,
                     answer VARCHAR(6000) NOT NULL,
@@ -53,9 +59,9 @@ INSERT INTO QUESTION (question_id, question, max_possible_score_main, max_possib
 INSERT INTO QUESTION (question_id, question, max_possible_score_main, max_possible_score_synsets, create_date) values (3, 'What color is the sky?', 100, 100, CURRENT_TIMESTAMP());
 INSERT INTO QUESTION (question_id, question, max_possible_score_main, max_possible_score_synsets, create_date) values (4, 'Who killed president Abraham?', 100, 100, CURRENT_TIMESTAMP());
 
-INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (1, 1, true, CURRENT_TIMESTAMP());
-INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (2, 1, true, CURRENT_TIMESTAMP());
-INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (3, 2, true, CURRENT_TIMESTAMP());
+INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, votes, create_date) values (1, 1, true, 0, CURRENT_TIMESTAMP());
+INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, votes, create_date) values (2, 1, true, 0, CURRENT_TIMESTAMP());
+INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, votes, create_date) values (3, 2, true, 0, CURRENT_TIMESTAMP());
 INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, votes, create_date) values (4, 3, false, 1, CURRENT_TIMESTAMP());
 
 
