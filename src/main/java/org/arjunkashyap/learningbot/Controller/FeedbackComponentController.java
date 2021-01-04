@@ -8,11 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 @RestController
@@ -49,17 +45,21 @@ public class FeedbackComponentController {
         }
         if (matches == null || lastAnswerIndex >= matches.size()-1) {//Ideally this should be handled in UI by not enabling the button
             //TODO
-            answerResponse.setMatches(matches);
+            matches = new ArrayList<>();
+            Match match = new Match();
             Answer answer = new Answer();
             answer.setAnswerId(-1);
             answer.setAnswerString("You should not have been able to get this");
-            answerResponse.setTopAnswer(answer);
+            match.setAnswer(answer);
+            matches.add(match);
+            answerResponse.setTopMatchIndex(0);
+            answerResponse.setMatches(matches);
             answerResponse.setContext(null);
             answerResponse.setStatus("FAILURE");
         }
         else {
             answerResponse.setMatches(matches);
-            answerResponse.setTopAnswer(matches.get(lastAnswerIndex + 1).getAnswer());
+            answerResponse.setTopMatchIndex(lastAnswerIndex + 1);
             context = new HashMap<>();
             context.put("QUESTION", question);
             context.put("LAST_ANSWER_INDEX", lastAnswerIndex + 1);

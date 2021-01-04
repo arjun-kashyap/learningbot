@@ -30,7 +30,7 @@ public class AnsweringComponentController {
 
         AnswerResponse answerResponse = new AnswerResponse();
         answerResponse.setMatches(matches);
-        answerResponse.setTopAnswer(matches.get(0).getAnswer());
+        answerResponse.setTopMatchIndex(0);
         //answerResponse.setTopAnswer(matches.first().getAnswer());
         Map<String, Object> context = new HashMap<>();
         context.put("QUESTION", question);

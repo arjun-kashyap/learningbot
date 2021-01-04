@@ -5,8 +5,7 @@ import java.util.List;
 
 public class AnswerResponse extends BotResponse implements Serializable {
     private List<Match> matches;
-    private Answer topAnswer;
-    private boolean moreAnswers; //TODO: implement logic to enable button functionality
+    private int topMatchIndex;
 
     public List<Match> getMatches() {
         return matches;
@@ -16,11 +15,11 @@ public class AnswerResponse extends BotResponse implements Serializable {
         this.matches = matches;
     }
 
-    public Answer getTopAnswer() {
-        return topAnswer;
+    public int getTopMatchIndex() {
+        return topMatchIndex;
     }
 
-    public void setTopAnswer(Answer answer) {
-        this.topAnswer = answer;
+    public void setTopMatchIndex(int topMatchIndex) {
+        this.topMatchIndex = topMatchIndex;
     }
 }
