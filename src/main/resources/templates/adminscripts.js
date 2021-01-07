@@ -14,7 +14,9 @@ function reInitialize() {
 
 function dumpQuestions() {
     postRequestToServer("dumpQuestions", {}, function(response) {
-                                            document.getElementById("adminInfo").value = response.debugInfo;
+                                            json = JSON.stringify(response.debugInfo,null,2);
+                                            x = json.replace(/\"/g, "");
+                                            document.getElementById("adminInfo").value = x;
                                         }
                        );
 }

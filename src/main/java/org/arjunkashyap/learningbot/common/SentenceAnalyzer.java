@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class SentenceAnalyzer implements InitializingBean {
+public class SentenceAnalyzer implements InitializingBean{
     @Autowired
-    private Environment env;
+    BotProperties props;
     private StanfordCoreNLP pipeline;
     @Autowired
     WordnetUtils wordnetUtils;
@@ -60,6 +60,7 @@ public class SentenceAnalyzer implements InitializingBean {
                 }
             }
             processedQuestion.setTree(tree.toString());
+            System.out.println(tree.toString());
             if (processedQuestion.getTree().contains("SBARQ") || processedQuestion.getTree().contains("SQ")) {
                 processedQuestion.setIsQuestion(true);
             } else {
@@ -177,11 +178,6 @@ public class SentenceAnalyzer implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        Properties props = new Properties();
-        props.setProperty("annotators", env.getProperty("corenlp.annotators"));
-        props.setProperty("ner.applyFineGrained", "true"); //TODO: get from properties
-        props.setProperty("parse.model", env.getProperty("corenlp.parse.model"));
-        props.setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
         pipeline = new StanfordCoreNLP(props);
     }
 }

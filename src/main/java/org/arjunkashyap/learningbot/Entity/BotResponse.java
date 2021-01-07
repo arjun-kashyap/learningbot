@@ -1,9 +1,12 @@
 package org.arjunkashyap.learningbot.Entity;
 
+import java.util.List;
+import java.util.Map;
+
 public class BotResponse {
     private String status;
     private long responseTime;
-    private String debugInfo;
+    private Map<String, Object> debugInfo;
     private String context;
 
     public String getStatus() {
@@ -22,11 +25,11 @@ public class BotResponse {
         this.responseTime = responseTime;
     }
 
-    public String getDebugInfo() {
+    public Map<String, Object> getDebugInfo() {
         return debugInfo;
     }
 
-    public void setDebugInfo(String debugInfo) {
+    public void setDebugInfo(Map<String, Object> debugInfo) {
         this.debugInfo = debugInfo;
     }
 

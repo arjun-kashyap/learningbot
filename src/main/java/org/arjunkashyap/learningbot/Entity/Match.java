@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class Match implements Comparable<Match>, Serializable {
-    private Answer answer;
     private Question question;
+    private Answer answer;
     private float searcherScore;
     private float synonymScore;
     private float voteScore;

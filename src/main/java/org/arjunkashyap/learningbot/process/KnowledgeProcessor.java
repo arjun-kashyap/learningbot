@@ -3,10 +3,7 @@ package org.arjunkashyap.learningbot.process;
 import edu.cmu.lti.jawjaw.pobj.Link;
 import net.sf.extjwnl.JWNLException;
 import org.arjunkashyap.learningbot.Entity.*;
-import org.arjunkashyap.learningbot.common.WordnetUtils;
-import org.arjunkashyap.learningbot.common.SearchIndex;
-import org.arjunkashyap.learningbot.common.SentenceAnalyzer;
-import org.arjunkashyap.learningbot.common.Utilities;
+import org.arjunkashyap.learningbot.common.*;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -31,6 +28,8 @@ public class KnowledgeProcessor {
     @Autowired
     private JdbcTemplate jtm;
     @Autowired
+    private BotProperties props;
+    @Autowired
     private SentenceAnalyzer sentenceAnalyzer;
     @Autowired
     private SearchIndex searchIndex;
@@ -44,11 +43,10 @@ public class KnowledgeProcessor {
         double synScore;
         ScoreDoc[] hits;
         TopScoreDocCollector collector;
-        hitsPerPage = totalHitsThreshold = 2; //TODO: Move to properties/database
+        hitsPerPage = totalHitsThreshold = props.HITS_THRESHOLD;
 
         List<Word> words = sentenceAnalyzer.getPosElements(question); //decompose the question string into words with POS tags
         List<List<Word>> synsetCombinations = new ArrayList<>();
-        int limit = 100; //No. of searches to run. TODO: get from properties
 
         try {
             synsetCombinations.add(words); //Add the input words as the first set
@@ -56,7 +54,7 @@ public class KnowledgeProcessor {
             Word synonymSynset;
             List<Word> combination = new ArrayList<>();
 
-            for (Word word : words) {         // TODO: Handle condition where there are no synsets for any words
+            for (Word word : words) {
                 if (word.getPos() == BotPOS.CARDINAL_NUMBER || word.getPos() == BotPOS.WH_QUESTION) {
                     synonymSynset = word;
                 } else {
@@ -186,8 +184,7 @@ public class KnowledgeProcessor {
             }
         }
 
-        int maxCombinations = 100000;//TODO: drive via properties, next line too
-        int limit = Math.min(10, Math.max(1, maxCombinations / (int) Math.pow(10, count)));
+        int limit = Math.min(10, Math.max(1, props.COMBINATIONS_THRESHOLD / (int) Math.pow(10, count)));
 
         for (Word word : words) {
             BotPOS pos = word.getPos();
@@ -299,7 +296,7 @@ public class KnowledgeProcessor {
             }
            /* if (namedEntities.length() > 0) {
                 doc.add(new TextField("namedEntity", namedEntities.toString(), Field.Store.NO));
-                            query2.append(" namedEntity:(" + entities.toString().trim() + ")^2");
+                            query.append(" namedEntity:(" + entities.toString().trim() + ")^2");
             }*/ //TODO: Should we add named entity?
             if (ads.length() > 0) {
                 doc.add(new TextField("ads", ads.toString(), Field.Store.NO));
@@ -308,11 +305,7 @@ public class KnowledgeProcessor {
                 doc.add(new TextField("mainWords", mainWords.toString(), Field.Store.NO));
             }
 
-            //TODO: Add as a single or fewer fields
             //TODO: Limit the System.out.printlns
-            //TODO: Add adjectives and adverbs
-            //TODO: Boosting
-
 
             doc.add(new StoredField("exactCount", exactCount));
             doc.add(new StoredField("synonymCount", synonymCount));
@@ -368,28 +361,27 @@ public class KnowledgeProcessor {
                 mainWords.append(" " + word.getLemma());
             }
         }
-        StringBuilder query2 = new StringBuilder();
+        StringBuilder query = new StringBuilder();
 
         if (cardinalNumber.length() > 0) {
-            query2.append(" +cd:(" + cardinalNumber.toString().trim() + ")");
+            query.append(" +cd:(" + cardinalNumber.toString().trim() + ")");
         }
         if (whClause.length() > 0) {
-            query2.append(" +wc:(" + whClause.toString().trim() + ")");
+            query.append(" +wc:(" + whClause.toString().trim() + ")");
         }
 
        /* if (entities.length() > 0) {
-            query2.append(" namedEntity:(" + entities.toString().trim() + ")^2");
+            query.append(" namedEntity:(" + entities.toString().trim() + ")^2");
         }*/
         if (ads.length() > 0) {
-            query2.append(" ads:(" + ads.toString().trim() + ")");
+            query.append(" ads:(" + ads.toString().trim() + ")");
         }
         if (mainWords.length() > 0) {
-            query2.append(" mainWords:(" + mainWords.toString().trim() + ")^10");
+            query.append(" mainWords:(" + mainWords.toString().trim() + ")^10");
         }
         //TODO: Implement fuzzy query?
-        String queryToUse = query2.toString(); //TODO: Remove query1
         //System.out.println("Query is:" + queryToUse);
-        return queryToUse;
+        return query.toString();
     }
 
     private ScoreDoc[] query(String queryToUse, TopDocsCollector collector) throws IOException, ParseException {

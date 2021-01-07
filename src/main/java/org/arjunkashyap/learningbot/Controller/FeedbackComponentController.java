@@ -36,11 +36,11 @@ public class FeedbackComponentController {
         //System.out.println("Last Index: "+lastAnswerIndex);
         //System.out.println("Previous Response: "+matches.get(lastAnswerIndex).getAnswer().getAnswerString());
         int lastAnswerIndex = Integer.MAX_VALUE;
-        Question question = null;
+        Question inputQuestion = null;
         List<Match> matches = null;
         if (context != null && context.get("LAST_ANSWER_INDEX") != null){
             lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
-            question = (Question) context.get("QUESTION");
+            inputQuestion = (Question) context.get("QUESTION");
             matches = (List<Match>) context.get("LAST_MATCHES");
         }
         if (matches == null || lastAnswerIndex >= matches.size()-1) {//Ideally this should be handled in UI by not enabling the button
@@ -61,12 +61,17 @@ public class FeedbackComponentController {
             answerResponse.setMatches(matches);
             answerResponse.setTopMatchIndex(lastAnswerIndex + 1);
             context = new HashMap<>();
-            context.put("QUESTION", question);
+            context.put("QUESTION", inputQuestion);
             context.put("LAST_ANSWER_INDEX", lastAnswerIndex + 1);
             context.put("LAST_MATCHES", matches);
             answerResponse.setContext(utilities.serializeToString(context));
             answerResponse.setStatus("SUCCESS");
-            answerResponse.setDebugInfo(question.toString() + matches.toString()); //TODO: Make debugInfo Json?
+            //answerResponse.setDebugInfo(question.toString() + matches.toString()); //TODO: Make debugInfo Json?
+            Map<String, Object> debugInfo = new TreeMap<>();
+            debugInfo.put("AskedQuestion", inputQuestion);
+            debugInfo.put("CurrentMatch", lastAnswerIndex + 1);
+            debugInfo.put("Matches", matches);
+            answerResponse.setDebugInfo(debugInfo);
             //TODO: reduce vote
         }
         long elapsedTime = System.currentTimeMillis() - startTime;

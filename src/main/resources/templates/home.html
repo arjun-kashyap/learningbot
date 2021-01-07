@@ -12,19 +12,11 @@
             <td style="width:60%; vertical-align:top">
                 <b>How may I help you? </b>Type your question in the box below
             </td>
-            <td style="width:20%; vertical-align:top">
-                <b>Debug Info</b>
-            </td>
         </tr>
         <tr>
-            <td style="width:80%; vertical-align:top; background-color:#D0D0D0">
-                <textarea id="conversation" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
-                          readonly="readonly" rows="20"></textarea>
+            <td style="width:100%; vertical-align:top; background-color:#D0D0D0">
+                <textarea id="conversation" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="20"></textarea>
                 <textarea style="border:1; width: 100%;" id="question" name="question" rows="5"></textarea>
-            </td>
-            <td style="width:20%; vertical-align:top; background-color:#D0D0D0">
-                <textarea id="debug" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;"
-                          readonly="readonly" rows="26"></textarea>
             </td>
         </tr>
         <tr>
@@ -33,20 +25,34 @@
                     Response Time (milliseconds): <input id="responseTime" style="border:0" value="0" disabled="">
                 </div>
                 <div style="display: inline-block; *display: inline;float: middle;">
-                    Confidence: <meter id="confidence" value="0" max="1" style="border:0"></meter>
+                    Confidence: <meter id="confidence" value="1" max="1" style="border:0"></meter>
                     <input id="confidencePercent" style="border:0" value="0" disabled="">
                 </div>
                 <div style="display: inline-block; *display: inline;float: right;">
-                    <input type="button" id="next_answer" onclick="getNextAnswer()" value="Get another answer">
-                    <input type="button" id="correct_answer" onclick="markAsCorrect()" value="Correct Answer">
                     <input type="button" id="question_error" onclick="XXX()" value="I did ask a question">
+                    <input type="button" id="correct_answer" onclick="markAsCorrect()" value="Correct Answer">
                     <input type="button" id="incorrect_answer" onclick="markAsIncorrect()" value="Incorrect answer">
+                    <input type="button" id="next_answer" onclick="getNextAnswer()" value="Get another answer">
                     <input type="button" id="submit" onclick="getAnswer()" value="Submit">
                 </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color:#D0D0D0">
+                <p></p>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%; vertical-align:top">
+                <b>Debug Info</b>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; vertical-align:top; background-color:#D0D0D0">
+                <textarea id="debug" style="background-color:#D0D0D0; border: none; width: 100%; resize: none;" readonly="readonly" rows="26"></textarea>
             </td>
         </tr>
         </tbody>
     </table>
 </div>
 </body>
-</html>

@@ -25,24 +25,24 @@ public class FeedbackProcessor {//TODO: Processor of feedback
                     question.getQuestionId(), answer.getAnswerId());
         }
         else {
-            int[] x = new int[1];
+            int[] questionID = new int[1];
                     jtm.query("SELECT QUESTION_SEQUENCE.NEXTVAL AS NEXT_QUESTION_ID", new RowMapper<int[]>() {
                         @Override
                         public int[] mapRow(ResultSet rs, int rowNum) throws SQLException {
-                            x[0] = rs.getInt("NEXT_QUESTION_ID");
-                            return x;
+                            questionID[0] = rs.getInt("NEXT_QUESTION_ID");
+                            return questionID;
                         }
                     }
             );
 
-            System.out.println("Adding question to database. "+x[0]);
+            System.out.println("Adding question to database. "+questionID[0]);
             jtm.update(
                     "INSERT INTO QUESTION (question_id, question, max_possible_score_main, max_possible_score_synsets, create_date) values (?, ?, 100, 100, CURRENT_TIMESTAMP())",
-                    x[0], userQuestion.getQuestionString()
+                    questionID[0], userQuestion.getQuestionString()
             );
             jtm.update(
                     "INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, votes, create_date) values (?, ?, true, 1, CURRENT_TIMESTAMP())",
-                    x[0], match.getAnswer().getAnswerId()
+                    questionID[0], match.getAnswer().getAnswerId()
             );
         }
     }

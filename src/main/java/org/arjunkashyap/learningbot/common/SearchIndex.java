@@ -11,19 +11,22 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.MMapDirectory;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
 public class SearchIndex {
+    @Autowired BotProperties props;
     private IndexSearcher mainSearcher;
     private final StandardAnalyzer mainAnalyzer = new StandardAnalyzer();
-    private Path mainIndexPath = Paths.get("/Users/Arjun/demo_lucene/");//TODO: properties;
+    private Path mainIndexPath;
     private IndexReader mainIndexReader;
-    private Directory mainIndex = new MMapDirectory(mainIndexPath);
+    private Directory mainIndex;
 
     public SearchIndex() throws IOException {
     }
@@ -72,5 +75,11 @@ public class SearchIndex {
 
     public StandardAnalyzer getMainAnalyzer() {
         return mainAnalyzer;
+    }
+
+    @PostConstruct
+    public void init() throws IOException {
+        mainIndexPath  = Paths.get(props.INDEX_LOCATION);
+        mainIndex = new MMapDirectory(mainIndexPath);
     }
 }

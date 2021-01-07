@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Component
-public class AnswerProcessor {//TODO: get only the best question match by score. Score the questions properly
+public class AnswerProcessor {
     @Autowired private JdbcTemplate jtm;
     @Autowired private KnowledgeProcessor knowledgeProcessor;
     private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_score_main, max_possible_score_synsets " +
@@ -29,7 +29,7 @@ public class AnswerProcessor {//TODO: get only the best question match by score.
             possibleMatches = knowledgeProcessor.search(inputQuestion.getQuestionString());
             for (Match match : possibleMatches) {
                 //System.out.println("QID: " + match.getQuestion().getQuestionId() + " score: " + match.getSearcherScore());
-                if (match.getSearcherScore() >= 0) {//TODO: check proper score
+                if (match.getSearcherScore() >= 0) {
                     jtm.query(SQL, new Object[]{match.getQuestion().getQuestionId()}, new RowCallbackHandler() {
                         @Override
                         public void processRow(ResultSet rs) throws SQLException {

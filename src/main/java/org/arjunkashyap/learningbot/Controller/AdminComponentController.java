@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @RestController
 public class AdminComponentController {
@@ -44,8 +46,12 @@ public class AdminComponentController {
         BotResponse response = new BotResponse();
         List<AdminQuestionAnswerRelation> listOfQuestions = adminProcessor.dumpQuestions();
         StringBuilder s = new StringBuilder("question_id\t\tquestion\t\t\t\t\tmax_possible_searcher_score\tanswer_id\tanswer\tmanual\tvotes");
+        Map<String, Object> debugInfo = new TreeMap<>();
+        debugInfo.put("#", s.toString());
+        int i = 0;
         for (AdminQuestionAnswerRelation r: listOfQuestions) {
-            s.append("\n"+r.getQuestion().getQuestionId()+
+            i++;
+            debugInfo.put(i+"", "\n"+r.getQuestion().getQuestionId()+
                     "\t"+r.getQuestion().getQuestionString()+
                     "\t"+r.getQuestion().getMaxPossibleScoreForMainWords()+
                     "\t"+r.getQuestion().getMaxPossibleScoreForSynsets()+
@@ -55,7 +61,9 @@ public class AdminComponentController {
                     "\t"+r.getVotes()
             );
         }
-        response.setDebugInfo(s.toString());//TODO: spacing of header and questions
+        //response.setDebugInfo(s.toString());//TODO: spacing of header and questions
+        response.setDebugInfo(debugInfo);
+
         return response;
     }
 

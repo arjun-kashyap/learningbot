@@ -1,20 +1,21 @@
 package org.arjunkashyap.learningbot.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
 public class Question implements Serializable {
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int questionId;
     private String questionString;
+    @JsonIgnore
     private float maxPossibleScoreForMainWords;
+    @JsonIgnore
     private float maxPossibleScoreForSynsets;
-
     @JsonIgnore
     private boolean isQuestion;
-    private String noun;
-    private String verb;
-    @JsonIgnore
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String tree;
 
     public int getQuestionId() {
@@ -39,22 +40,6 @@ public class Question implements Serializable {
 
     public void setIsQuestion(boolean question) {
         isQuestion = question;
-    }
-
-    public String getNoun() {
-        return noun;
-    }
-
-    public void setNoun(String noun) {
-        this.noun = noun;
-    }
-
-    public String getVerb() {
-        return verb;
-    }
-
-    public void setVerb(String verb) {
-        this.verb = verb;
     }
 
     public String getTree() {
@@ -87,8 +72,6 @@ public class Question implements Serializable {
                 "questionId=" + questionId +
                 ", questionString='" + questionString + '\'' +
                 ", isQuestion=" + isQuestion +
-                ", noun='" + noun + '\'' +
-                ", verb='" + verb +
                 '}';
     }
 }
