@@ -4,6 +4,7 @@ import org.arjunkashyap.learningbot.Entity.*;
 import org.arjunkashyap.learningbot.common.Utilities;
 import org.arjunkashyap.learningbot.process.FeedbackProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,10 +16,11 @@ import java.util.*;
 public class FeedbackComponentController {
     @Autowired private Utilities<Map<String, Object>> utilities;
     @Autowired private FeedbackProcessor feedbackProcessor;
+    @Autowired private JdbcTemplate jtm;
 
     @PostMapping(
-            value = "/receiveFeedback", consumes = "application/json", produces = "application/json")
-    public BotResponse receiveFeedback(@RequestBody BotRequest request) {//TODO: Register feedback, send acknowledgement
+            value = "/questionDetectionError", consumes = "application/json", produces = "application/json")
+    public BotResponse questionDetectionError(@RequestBody BotRequest request) {//TODO: Register feedback, send acknowledgement
         //TODO: Log each interaction and the response in table
         BotResponse botResponse = new BotResponse();
         return botResponse;
@@ -78,41 +80,72 @@ public class FeedbackComponentController {
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
         //TODO: Log each interaction and the response in table
+        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'NEXT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
         return answerResponse;
     }
 
     @PostMapping(
             value = "/markAsCorrect", consumes = "application/json", produces = "application/json")
-    public AnswerResponse markAsCorrect(@RequestBody BotRequest request) {
+    public BotResponse markAsCorrect(@RequestBody BotRequest request) {
         long startTime = System.currentTimeMillis();
-        AnswerResponse answerResponse = new AnswerResponse();
+        BotResponse botResponse = new BotResponse();
         Map<String, Object> context = null;
         context = utilities.deserializeFromString(request.getContext());
-        int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
-        Question question = (Question) context.get("QUESTION");
-        List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
-        Match lastMatch = matches.get(lastAnswerIndex);
-        System.out.println(lastMatch);
-        feedbackProcessor.incrementVote(lastMatch, question);
-
-        return answerResponse;
+        if (context != null && context.size()>0) {
+            int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
+            Question question = (Question) context.get("QUESTION");
+            List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
+            Match lastMatch = matches.get(lastAnswerIndex);
+            System.out.println(lastMatch);
+            feedbackProcessor.incrementVote(lastMatch, question);
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Feedback processed");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("SUCCESS");
+        } else {
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Handle in UI");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("FAILURE");
+        }
+        botResponse.setContext(request.getContext());
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'CORRECT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        botResponse.setResponseTime(elapsedTime);
+        return botResponse;
     }
 
     @PostMapping(
             value = "/markAsIncorrect", consumes = "application/json", produces = "application/json")
-    public AnswerResponse markAsIncorrect(@RequestBody BotRequest request) {
+    public BotResponse markAsIncorrect(@RequestBody BotRequest request) {
         long startTime = System.currentTimeMillis();
-        AnswerResponse answerResponse = new AnswerResponse();
+        BotResponse botResponse = new BotResponse();
         Map<String, Object> context = null;
         context = utilities.deserializeFromString(request.getContext());
-        int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
-        Question question = (Question) context.get("QUESTION");
-        List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
-        Match lastMatch = matches.get(lastAnswerIndex);
-        System.out.println(lastMatch);
-        feedbackProcessor.decrementVote(lastMatch, question);
+        if (context != null && context.size()>0) {
 
-        return answerResponse;
+            int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
+            Question question = (Question) context.get("QUESTION");
+            List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
+            Match lastMatch = matches.get(lastAnswerIndex);
+            System.out.println(lastMatch);
+            feedbackProcessor.decrementVote(lastMatch, question);
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Feedback processed");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("SUCCESS");
+        } else {
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Handle in UI");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("FAILURE");
+        }
+        botResponse.setContext(request.getContext());
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'INCORRECT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        botResponse.setResponseTime(elapsedTime);
+        return botResponse;
     }
 
     //TODO: Method for not detecting a question properly

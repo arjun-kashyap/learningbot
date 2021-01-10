@@ -13,6 +13,7 @@ import org.arjunkashyap.learningbot.process.KnowledgeProcessor;
 import org.arjunkashyap.learningbot.common.SentenceAnalyzer;
 import org.h2.util.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.json.Json;
@@ -25,6 +26,7 @@ public class AnsweringComponentController {
     @Autowired private SentenceAnalyzer sentenceAnalyzer;
     @Autowired private KnowledgeProcessor knowledgeProcessor;
     @Autowired private Utilities<Map<String, Object>> utilities;
+    @Autowired private JdbcTemplate jtm;
 
     @PostMapping(
             value = "/postQuestion", consumes = "application/json", produces = "application/json")
@@ -52,6 +54,7 @@ public class AnsweringComponentController {
         //TODO: Use NER parser of CoreNLP to detect names of people and organization and use in addition to nouns and verbs
         // See https://www.aclweb.org/anthology/P14-5010.pdf
 
+        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
         answerResponse.setStatus("SUCCESS");
         Map<String, Object> debugInfo = new TreeMap<>();
         debugInfo.put("AskedQuestion", inputQuestion);

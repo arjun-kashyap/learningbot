@@ -1,4 +1,5 @@
 var context;
+
 function getAnswer() {
     var question = document.getElementById("question").value.trim();
     var conversationTextarea = document.getElementById("conversation");
@@ -6,8 +7,6 @@ function getAnswer() {
     conversation = conversation + "\nYou: " + question;
     conversationTextarea.value = conversation;
     document.getElementById("question").value = "";
-    document.getElementById("submit").value = "Please wait";
-    document.getElementById("submit").disabled = true;
     payload = JSON.stringify({"input":question});
     postRequestToServer("postQuestion", payload, function(response) {
                                             topMatch = response.matches[response.topMatchIndex];
@@ -17,13 +16,23 @@ function getAnswer() {
                                             document.getElementById("confidence").value = topMatch.weightedFinalScore;
                                             document.getElementById("confidencePercent").value = Math.round(topMatch.weightedFinalScore*100,0)+'%';
                                             document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
-                                            document.getElementById("submit").value = "Submit";
-                                            document.getElementById("submit").disabled = false;
+                                            if (topMatch.question == null) {
+                                                disableFeedback();
+                                            } else {
+                                                enableFeedback();
+                                            }
+
                                             if (response.matches.length-1 == response.topMatchIndex) {
                                                 document.getElementById("next_answer").disabled = true;
                                             } else {
                                                 document.getElementById("next_answer").disabled = false;
                                             }
+                                            if (topMatch.answer.answerId == -1) {
+                                                document.getElementById("question_error").disabled = false;
+                                            } else {
+                                                document.getElementById("question_error").disabled = true;
+                                            }
+
                                             context = response.context;
                                     }
                           );
@@ -33,8 +42,6 @@ function getNextAnswer() {
     payload = JSON.stringify({"context":context});
     var conversationTextarea = document.getElementById("conversation");
     var conversation = conversationTextarea.value;
-    document.getElementById("next_answer").value = "Please wait";
-    document.getElementById("next_answer").disabled = true;
     postRequestToServer("getNextAnswer", payload, function(response) {
                                             topMatch = response.matches[response.topMatchIndex];
                                             conversationTextarea.value = conversation + "ChatBot: " + topMatch.answer.answerString + "\n";
@@ -43,8 +50,7 @@ function getNextAnswer() {
                                             document.getElementById("confidence").value = topMatch.weightedFinalScore;
                                             document.getElementById("confidencePercent").value = Math.round(topMatch.weightedFinalScore*100,0)+'%';
                                             document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
-                                            document.getElementById("next_answer").value = "Get another answer";
-                                            document.getElementById("next_answer").disabled = false;
+                                            enableFeedback();
                                             if (response.matches.length-1 == response.topMatchIndex) {
                                                 document.getElementById("next_answer").disabled = true;
                                             } else {
@@ -57,24 +63,48 @@ function getNextAnswer() {
 
 function markAsCorrect() {
     payload = JSON.stringify({"context":context});
-    var conversationTextarea = document.getElementById("conversation");
-    var conversation = conversationTextarea.value;
+    disableFeedback();
     postRequestToServer("markAsCorrect", payload, function(response) {
-                                            conversationTextarea.value = conversation + "ChatBot: " + response.topAnswer.answerString + "\n";
-                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
                                             context = response.context;
+                                            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
+                                            alert("Thanks for your feedback");
                                                                      }
                           );
 }
 
 function markAsIncorrect() {
     payload = JSON.stringify({"context":context});
-    var conversationTextarea = document.getElementById("conversation");
-    var conversation = conversationTextarea.value;
+    state = document.getElementById("next_answer").disabled;
+    disableFeedback();
+    document.getElementById("next_answer").disabled = state;
     postRequestToServer("markAsIncorrect", payload, function(response) {
-                                            conversationTextarea.value = conversation + "ChatBot: " + response.topAnswer.answerString + "\n";
-                                            conversationTextarea.scrollTop = conversationTextarea.scrollHeight
                                             context = response.context;
+                                            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
+                                            alert("Thanks for your feedback");
                                                                      }
                           );
+}
+function questionDetectionError() {
+    payload = JSON.stringify({"context":context});
+    disableFeedback();
+    postRequestToServer("questionDetectionError", payload, function(response) {
+                                            context = response.context;
+                                            document.getElementById("debug").value = JSON.stringify(response.debugInfo, null, 2);
+                                            alert("Thanks for your feedback");
+                                                                     }
+                          );
+}
+
+function disableFeedback() {
+    document.getElementById("question_error").disabled = true;
+    document.getElementById("correct_answer").disabled = true;
+    document.getElementById("incorrect_answer").disabled = true;
+    document.getElementById("next_answer").disabled = true;
+}
+
+function enableFeedback() {
+    document.getElementById("question_error").disabled = false;
+    document.getElementById("correct_answer").disabled = false;
+    document.getElementById("incorrect_answer").disabled = false;
+    document.getElementById("next_answer").disabled = false;
 }
