@@ -22,41 +22,43 @@ import java.nio.file.Paths;
 @Component
 public class SearchIndex {
     @Autowired BotProperties props;
-    private IndexSearcher mainSearcher;
-    private final StandardAnalyzer mainAnalyzer = new StandardAnalyzer();
-    private Path mainIndexPath;
-    private IndexReader mainIndexReader;
-    private Directory mainIndex;
+    private IndexSearcher searcher;
+    private final StandardAnalyzer analyzer = new StandardAnalyzer();
+    private Path indexPath;
+    private IndexReader indexReader;
+    private Directory index;
 
-    public SearchIndex() throws IOException {
-    }
-
-    public IndexWriter getMainIndexWriterForWrite() throws IOException {
-        if (mainIndexReader != null) {
+    public IndexWriter getIndexWriterForWrite(String mode) throws IOException {
+        if (indexReader != null) {
             try {
-                mainIndexReader.close();
-                mainIndexReader = null;
-                mainSearcher = null;
+                indexReader.close();
+                indexReader = null;
+                searcher = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        FileUtils.deleteDirectory(mainIndexPath.toFile());
-        IndexWriterConfig config = new IndexWriterConfig(mainAnalyzer);
-        IndexWriter indexWriter = new IndexWriter(mainIndex, config);
+        //FileUtils.deleteDirectory(indexPath.toFile());
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        if (mode.equals("CREATE")) {
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+        } else {
+            config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
+        }
+        IndexWriter indexWriter = new IndexWriter(index, config);
         return indexWriter;
     }
 
-    public void closeMainIndexWriter(IndexWriter indexWriter) throws IOException {
+    public void closeIndexWriter(IndexWriter indexWriter) throws IOException {
         indexWriter.close();
     }
 
     public IndexSearcher getIndexSearcher() {
-        if (mainIndexReader == null) {
+        if (indexReader == null) {
             try {
-                mainIndexReader = DirectoryReader.open(mainIndex);
-                mainSearcher = new IndexSearcher(mainIndexReader);
+                indexReader = DirectoryReader.open(index);
+                searcher = new IndexSearcher(indexReader);
                 Similarity sim = new  BM25Similarity() {
                     // We are doing this because the synsets occur many times in the index (for each combination).
                     // This boosts the match of english words rather than synsets
@@ -65,21 +67,21 @@ public class SearchIndex {
                         return 1;
                     }
                 };
-                mainSearcher.setSimilarity(sim);
+                searcher.setSimilarity(sim);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return mainSearcher;
+        return searcher;
     }
 
-    public StandardAnalyzer getMainAnalyzer() {
-        return mainAnalyzer;
+    public StandardAnalyzer getAnalyzer() {
+        return analyzer;
     }
 
     @PostConstruct
     public void init() throws IOException {
-        mainIndexPath  = Paths.get(props.INDEX_LOCATION);
-        mainIndex = new MMapDirectory(mainIndexPath);
+        indexPath = Paths.get(props.INDEX_LOCATION);
+        index = new MMapDirectory(indexPath);
     }
 }

@@ -23,6 +23,7 @@ public class BotProperties extends Properties {
     public void afterPropertiesSet() {
         setProperty("annotators", env.getProperty("corenlp.annotators"));
         setProperty("parse.model", env.getProperty("corenlp.parse.model"));
+        setProperty("parse.model.alt", env.getProperty("corenlp.parse.model.alt"));
         setProperty("parse.maxlen", env.getProperty("corenlp.parse.maxlen"));
         setProperty("ner.applyFineGrained", "true");
         setProperty("mention.type", "dep");

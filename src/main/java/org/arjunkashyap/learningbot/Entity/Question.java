@@ -18,6 +18,9 @@ public class Question implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String tree;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String parser;
+
     public int getQuestionId() {
         return questionId;
     }
@@ -64,6 +67,14 @@ public class Question implements Serializable {
 
     public void setMaxPossibleScoreForSynsets(float maxPossibleScoreForSynsets) {
         this.maxPossibleScoreForSynsets = maxPossibleScoreForSynsets;
+    }
+
+    public String getParser() {
+        return parser;
+    }
+
+    public void setParser(String parser) {
+        this.parser = parser;
     }
 
     @Override

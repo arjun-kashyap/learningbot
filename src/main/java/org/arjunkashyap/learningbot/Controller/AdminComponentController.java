@@ -61,7 +61,7 @@ public class AdminComponentController {
                     "\t"+r.getVotes()
             );
         }
-        //response.setDebugInfo(s.toString());//TODO: spacing of header and questions
+        //response.setDebugInfo(s.toString());//TODO: LOW: spacing of header and questions
         response.setDebugInfo(debugInfo);
 
         return response;

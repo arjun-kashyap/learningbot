@@ -46,12 +46,11 @@ public class AnsweringComponentController {
         answerResponse.setContext(utilities.serializeToString(context));
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
-        //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
-        //TODO: Log each interaction and the response in table
+        //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));
         //TODO: If the inputQuestion text had different nouns and verbs, and the vote count increases add the inputQuestion to the database
         //      The inputQuestion table can have a new column to indicate if the inputQuestion was automatically added
         //
-        //TODO: Use NER parser of CoreNLP to detect names of people and organization and use in addition to nouns and verbs
+        //Used NER parser of CoreNLP to detect names of people and organization and use in addition to nouns and verbs
         // See https://www.aclweb.org/anthology/P14-5010.pdf
 
         jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);

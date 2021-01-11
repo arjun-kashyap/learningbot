@@ -20,7 +20,6 @@ import edu.stanford.nlp.util.CoreMap;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,13 +29,14 @@ public class SentenceAnalyzer implements InitializingBean{
     @Autowired
     BotProperties props;
     private StanfordCoreNLP pipeline;
+    private StanfordCoreNLP pipelineAlt;
     @Autowired
     WordnetUtils wordnetUtils;
 
-    public static void main(String[] args) throws JWNLException {//TODO: Remove this
+    public static void main(String[] args) throws JWNLException {//TODO: OK: Remove this
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,parse,lemma,ner");
-        props.setProperty("ner.applyFineGrained", "false"); //TODO: get from properties
+        props.setProperty("ner.applyFineGrained", "false");
         props.setProperty("parse.model", "edu/stanford/nlp/models/srparser/englishSR.ser.gz");
         props.setProperty("parse.maxlen", "100");
         SentenceAnalyzer s = new SentenceAnalyzer();
@@ -46,9 +46,21 @@ public class SentenceAnalyzer implements InitializingBean{
     }
 
     public Question processQuestion(String questionString) {
-        Question processedQuestion = new Question();
-        processedQuestion.setQuestionString(questionString);
         Annotation annotation = new Annotation(questionString);
+        Question processedQuestion = process(pipeline, annotation);
+        processedQuestion.setParser("SR");
+        if (!processedQuestion.getIsQuestion()) {
+            //Trying fallback parser
+            System.out.println("SR Parser did not detect it as question. Using PCFG parser.");
+            processedQuestion = process(pipelineAlt, annotation);
+            processedQuestion.setParser("PCFG");
+        }
+        processedQuestion.setQuestionString(questionString);
+        return processedQuestion;
+    }
+
+    private Question process(StanfordCoreNLP pipeline, Annotation annotation) {
+        Question processedQuestion = new Question();
         pipeline.annotate(annotation);
         List<CoreMap> coreMapList = annotation.get(CoreAnnotations.SentencesAnnotation.class);
         if (coreMapList.size() >= 1) {
@@ -116,7 +128,7 @@ public class SentenceAnalyzer implements InitializingBean{
                             previousWord.setPos(BotPOS.VERB);
                         }
                     }
-                } else if (tok.tag().equals("RP")) { //Take care of "particle"
+                } else if (tok.tag().equals("RP")) { //Take care of "particle"/. E.g. hang out in Q# 21
                     previousWord = classifiedList.get(classifiedList.size() - 1);
                     if  ((previousWord != null) && (previousWord.getPos() == BotPOS.VERB)) {
                         IndexWord verb = wordnetUtils.wordInWordNet(BotPOS.VERB, previousWord.getLemma() + " " + tok.lemma());
@@ -179,5 +191,9 @@ public class SentenceAnalyzer implements InitializingBean{
     @Override
     public void afterPropertiesSet() {
         pipeline = new StanfordCoreNLP(props);
+        props.setProperty("parse.model", props.getProperty("parse.model.alt"));
+        pipelineAlt = new StanfordCoreNLP(props);
+        System.out.println(pipeline.getProperties());
+        System.out.println(pipelineAlt.getProperties());
     }
 }

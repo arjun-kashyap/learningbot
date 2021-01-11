@@ -58,16 +58,10 @@ public class AnswerProcessor {
                 }
             }
             if (possibleMatches.size() == 0) {
-                /*Question question = new Question();
-                question.setQuestionString("Unknown");
-                question.setQuestionId(-1);
-                question.setIsQuestion(true);
-                 */
                 Answer answer = new Answer();
                 answer.setAnswerId(-1);
                 answer.setAnswerString("Sorry, I don't have an answer for this question. This question has been recorded for analysis.");
                 Match match = new Match();
-                //match.setQuestion(question);
                 match.setAnswer(answer);
                 match.setSearcherScore(0.0f);
                 match.setSynonymScore(0.0f);
@@ -79,15 +73,10 @@ public class AnswerProcessor {
         }
         else {
             possibleMatches = new ArrayList<>();
-            /*Question question = new Question();
-            question.setQuestionString("");
-            question.setQuestionId(-2);
-            */
             Answer answer = new Answer();
             answer.setAnswerId(-1);
-            answer.setAnswerString("You did not seem to have asked a question. If the question is proper, please click the button in feedback section.");
+            answer.setAnswerString("You did not seem to have asked a question. If the question is proper, please click the button \"I did ask a question\".");
             Match match = new Match();
-            //match.setQuestion(question);
             match.setAnswer(answer);
             match.setSearcherScore(0.0f);
             match.setSynonymScore(0.0f);
@@ -106,4 +95,3 @@ public class AnswerProcessor {
         return matchList;
     }
 }
-//TODO: Reindexing, votes etc

@@ -30,10 +30,10 @@ public class WordnetUtils {
     }
 
     public static void main(String[] args) throws JWNLException {
-        List<Synonym> synonyms;
+        List<SynonymSynset> synonyms;
         Synonym synonym;
         WordnetUtils wordnetUtils = new WordnetUtils();
-        synonyms = wordnetUtils.getVerbForNounWithPreposition("meaning");
+        //synonyms = wordnetUtils.getVerbForNounWithPreposition("meaning");
         //synonyms = wordnetUtils.getWordsInSameLevel(wordInWordNet(POS.NOUN, "phone"), BotPOS.noun);
         // synonyms = wordnetUtils.getHypernyms(wordInWordNet(POS.NOUN, "phone"), BotPOS.noun);
 
@@ -41,6 +41,8 @@ public class WordnetUtils {
         //synonyms = wordnetUtils.getSiblings(wordInWordNet(POS.VERB, "catch up"), BotPOS.noun);
         //synonyms = wordnetUtils.getTopSynonyms("phone", BotPOS.verb, 10);
         //synonym = wordnetUtils.getTopVerbForNounWithPreposition("president");
+        synonyms = wordnetUtils.getTopSynsets("big", BotPOS.ADJECTIVE, 1000000);
+        //synonyms = wordnetUtils.getTopSynsets("phone", BotPOS.NOUN,1000000);
         System.out.println(synonyms);
         System.out.println(wordnetUtils.getSynsetsInSameLevel(dictionary.getIndexWord(POS.NOUN, "Phone"), BotPOS.NOUN));
     }
@@ -70,7 +72,7 @@ public class WordnetUtils {
     }
 
     public List<SynonymSynset> getTopSynsets(String inputWord, BotPOS inputPos, int limit) {
-        List<SynonymSynset> synonyms = new ArrayList<>();
+        Set<SynonymSynset> synonyms = new HashSet<>();
         if (limit >= 1 && inputPos != null && inputPos != BotPOS.WH_QUESTION && inputPos != BotPOS.CARDINAL_NUMBER) {
             IndexWord indexWord = null;
             try {
@@ -78,12 +80,22 @@ public class WordnetUtils {
                 if (indexWord != null) {
                     List<SynonymSynset> synsetsInSameLevel = getSynsetsInSameLevel(indexWord, inputPos);
                     int i = 0;
-                    for (SynonymSynset synset : synsetsInSameLevel){
+                    for (SynonymSynset synset : synsetsInSameLevel) {
                         if (i++ > limit) {
                             break;
                         }
                         synonyms.add(synset); // add synonyms
                     }
+
+                    if (synonyms.size() < limit) { //add upto the limit
+                        for (SynonymSynset simnym : getSynsetsOfWordsInSameLevel(indexWord, inputPos)) {
+                            if (synonyms.size() >= limit) {
+                                break;
+                            }
+                            synonyms.add(simnym);
+                        }
+                    }
+
                     if (synonyms.size() < limit) { //get hypernyms upto remaining limit
                         for (SynonymSynset hypernym : getHyperSynsets(indexWord, inputPos)) {
                             if (synonyms.size() >= limit) {
@@ -105,12 +117,12 @@ public class WordnetUtils {
                 e.printStackTrace();
             }
         }
-        return synonyms;
+        return new ArrayList<>(synonyms);
     }
 
     public SynonymSynset getSynsetsOffsetInSameLevel(String word, BotPOS inputPos) {
         IndexWord indexWord = null;
-        List<SynonymSynset> synsetOffsets = new ArrayList<>();
+        //List<SynonymSynset> synsetOffsets = new ArrayList<>();
         try {
             indexWord = wordInWordNet(inputPos, word);
         } catch (JWNLException e) {
@@ -126,58 +138,91 @@ public class WordnetUtils {
     }
 
     private List<SynonymSynset> getSynsetsInSameLevel(IndexWord word, BotPOS inputPos) {
-        List<SynonymSynset> synsets = new ArrayList<>();
+        Set<SynonymSynset> synsets = new HashSet<>();
         for (Synset synset : word.getSenses()) {
             SynonymSynset s = new SynonymSynset();
-            s.setWord(""+synset.getOffset());
-            s.setLemma(""+synset.getOffset());
+            s.setWord("" + synset.getOffset());
+            s.setLemma("" + synset.getOffset());
             s.setSynset(synset);
             s.setUseCount(synset.getWords().get(synset.indexOfWord(word.getLemma())).getUseCount());
             s.setLinkType(Link.syns);
             s.setPos(inputPos);
             synsets.add(s);
         }
-        return synsets;
+        return new ArrayList<>(synsets);
+    }
+
+    private List<SynonymSynset> getSynsetsOfWordsInSameLevel(IndexWord word, BotPOS inputPos) throws JWNLException {
+        //e.g. risk, and danger. Although they appear in same synset,
+        // danger has multiple synsets and the first one does not match risk's
+        Set<String> uniqueWords = new HashSet<>();
+        Set<SynonymSynset> uniqueSynsets = new HashSet<>();
+        for (Synset synset : word.getSenses()) {//Get all words in all synsets where our main word is present
+            for (Word x : synset.getWords()) {
+                uniqueWords.add(x.getLemma());
+            }
+        }
+        for (String y : uniqueWords) {//Get unique synsets for all the above words (some will not be in same tree)
+            IndexWord indexWord = wordInWordNet(inputPos, y);
+            for (Synset synset : indexWord.getSenses()) {
+                SynonymSynset s = new SynonymSynset();
+                s.setWord("" + synset.getOffset());
+                s.setLemma("" + synset.getOffset());
+                s.setSynset(synset);
+                s.setLinkType(Link.sim);
+                s.setPos(inputPos);
+                uniqueSynsets.add(s);
+            }
+        }
+        return new ArrayList<>(uniqueSynsets);
     }
 
     private List<SynonymSynset> getHyperSynsets(IndexWord word, BotPOS inputPos) throws JWNLException {
-        List<SynonymSynset> synsets = new ArrayList<>();
+        Set<SynonymSynset> synsets = new HashSet<>();
         PointerTargetNodeList pointerTargetNodes;
-        for (SynonymSynset synset: getSynsetsInSameLevel(word, inputPos)){
-            pointerTargetNodes = PointerUtils.getDirectHypernyms(synset.getSynset());
+        for (SynonymSynset synset : getSynsetsInSameLevel(word, inputPos)) {
+            if (inputPos == BotPOS.ADJECTIVE || inputPos == BotPOS.ADVERB) {
+                pointerTargetNodes = PointerUtils.getSynonyms(synset.getSynset());
+            } else {
+                pointerTargetNodes = PointerUtils.getDirectHypernyms(synset.getSynset());
+            }
+
             for (PointerTargetNode ptr : pointerTargetNodes) {
                 SynonymSynset s = new SynonymSynset();
-                s.setWord(""+ptr.getSynset().getOffset());
-                s.setLemma(""+ptr.getSynset().getOffset());
+                s.setWord("" + ptr.getSynset().getOffset());
+                s.setLemma("" + ptr.getSynset().getOffset());
                 s.setSynset(ptr.getSynset());
                 s.setLinkType(Link.hype);
                 s.setPos(inputPos);
                 synsets.add(s);
             }
         }
-        return synsets;
+        return new ArrayList<>(synsets);
     }
 
-    private List<SynonymSynset> getSiblingSynsets(IndexWord word, BotPOS inputPos) throws JWNLException { //TODO: Fixme
+    private List<SynonymSynset> getSiblingSynsets(IndexWord word, BotPOS inputPos) throws JWNLException {
         List<SynonymSynset> currentLevelSynsets = getSynsetsInSameLevel(word, inputPos);
-        List<SynonymSynset> synsets = new ArrayList<>();
-        for (SynonymSynset synset : getHyperSynsets(word, inputPos)) {
-            for (PointerTargetNode ptr : PointerUtils.getDirectHyponyms(synset.getSynset())) {
-                if (!currentLevelSynsets.contains(ptr.getSynset())) {
-                    SynonymSynset s = new SynonymSynset();
-                    s.setWord(""+ptr.getSynset().getOffset());
-                    s.setLemma(""+ptr.getSynset().getOffset());
-                    s.setSynset(ptr.getSynset());
-                    s.setPos(inputPos);
-                    s.setLinkType(Link.hypo);
-                    synsets.add(s);
+        Set<SynonymSynset> synsets = new HashSet<>();
+
+        if (inputPos != BotPOS.ADJECTIVE && inputPos != BotPOS.ADVERB) {
+            for (SynonymSynset synset : getHyperSynsets(word, inputPos)) {
+                for (PointerTargetNode ptr : PointerUtils.getDirectHyponyms(synset.getSynset())) {
+                    if (!currentLevelSynsets.contains(ptr.getSynset())) {
+                        SynonymSynset s = new SynonymSynset();
+                        s.setWord("" + ptr.getSynset().getOffset());
+                        s.setLemma("" + ptr.getSynset().getOffset());
+                        s.setSynset(ptr.getSynset());
+                        s.setPos(inputPos);
+                        s.setLinkType(Link.hypo);
+                        synsets.add(s);
+                    }
                 }
             }
         }
-        return synsets;
+        return new ArrayList<>(synsets);
     }
 
-    public Synonym getTopVerbForNounWithPreposition(String inputWord){
+    public Synonym getTopVerbForNounWithPreposition(String inputWord) {
         List<Synonym> topVerbList = getVerbForNounWithPreposition(inputWord);
         Synonym topVerb = null;
         double previousScore = Double.MAX_VALUE;
@@ -191,7 +236,7 @@ public class WordnetUtils {
         return topVerb;
     }
 
-    private List<Synonym> getVerbForNounWithPreposition(String inputWord){
+    private List<Synonym> getVerbForNounWithPreposition(String inputWord) {
         Set<Synset> synsets = new HashSet<>();
         Set<Pointer> pointers = new HashSet<>();
         Set<Synset> targetSynsets = new HashSet<>();
@@ -231,8 +276,6 @@ public class WordnetUtils {
                 }
             }
         }
-        ArrayList<Synonym> verbList = new ArrayList<>();
-        verbList.addAll(synverbs);
-        return verbList;
+        return new ArrayList(synverbs);
     }
 }

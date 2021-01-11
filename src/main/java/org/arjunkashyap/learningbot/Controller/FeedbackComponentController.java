@@ -19,14 +19,6 @@ public class FeedbackComponentController {
     @Autowired private JdbcTemplate jtm;
 
     @PostMapping(
-            value = "/questionDetectionError", consumes = "application/json", produces = "application/json")
-    public BotResponse questionDetectionError(@RequestBody BotRequest request) {//TODO: Register feedback, send acknowledgement
-        //TODO: Log each interaction and the response in table
-        BotResponse botResponse = new BotResponse();
-        return botResponse;
-    }
-
-    @PostMapping(
             value = "/getNextAnswer", consumes = "application/json", produces = "application/json")
     public AnswerResponse getNextAnswer(@RequestBody BotRequest request) {
         long startTime = System.currentTimeMillis();
@@ -46,7 +38,6 @@ public class FeedbackComponentController {
             matches = (List<Match>) context.get("LAST_MATCHES");
         }
         if (matches == null || lastAnswerIndex >= matches.size()-1) {//Ideally this should be handled in UI by not enabling the button
-            //TODO
             matches = new ArrayList<>();
             Match match = new Match();
             Answer answer = new Answer();
@@ -68,7 +59,7 @@ public class FeedbackComponentController {
             context.put("LAST_MATCHES", matches);
             answerResponse.setContext(utilities.serializeToString(context));
             answerResponse.setStatus("SUCCESS");
-            //answerResponse.setDebugInfo(question.toString() + matches.toString()); //TODO: Make debugInfo Json?
+            //answerResponse.setDebugInfo(question.toString() + matches.toString());
             Map<String, Object> debugInfo = new TreeMap<>();
             debugInfo.put("AskedQuestion", inputQuestion);
             debugInfo.put("CurrentMatch", lastAnswerIndex + 1);
@@ -78,7 +69,7 @@ public class FeedbackComponentController {
         }
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
-        //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));//TODO: log in table
+        //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));
         //TODO: Log each interaction and the response in table
         jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'NEXT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
         return answerResponse;
@@ -123,7 +114,6 @@ public class FeedbackComponentController {
         Map<String, Object> context = null;
         context = utilities.deserializeFromString(request.getContext());
         if (context != null && context.size()>0) {
-
             int lastAnswerIndex = (int) context.get("LAST_ANSWER_INDEX");
             Question question = (Question) context.get("QUESTION");
             List<Match> matches = (List<Match>) context.get("LAST_MATCHES");
@@ -148,7 +138,32 @@ public class FeedbackComponentController {
         return botResponse;
     }
 
-    //TODO: Method for not detecting a question properly
+    @PostMapping(
+            value = "/questionDetectionError", consumes = "application/json", produces = "application/json")
+    public BotResponse questionDetectionError(@RequestBody BotRequest request) {
+        long startTime = System.currentTimeMillis();
+        BotResponse botResponse = new BotResponse();
+        Map<String, Object> context = null;
+        context = utilities.deserializeFromString(request.getContext());
+        if (context != null && context.size()>0) {
+            Question question = (Question) context.get("QUESTION");
+            feedbackProcessor.addQuestionToReviewList(question);
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Feedback processed");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("SUCCESS");
+        } else {
+            Map<String, Object> message = new HashMap<>();
+            message.put("message","Handle in UI");
+            botResponse.setDebugInfo(message);
+            botResponse.setStatus("FAILURE");
+        }
+        botResponse.setContext(request.getContext());
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'QUESTION_DETECTION_ERROR', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        botResponse.setResponseTime(elapsedTime);
+        return botResponse;    }
 
     //TODO: Method for marking incorrect answer. What if a question is marked with too many down-votes.
     // We may be giving some other answer that is not appropriate

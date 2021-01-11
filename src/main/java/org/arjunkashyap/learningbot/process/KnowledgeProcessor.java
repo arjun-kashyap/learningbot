@@ -13,6 +13,7 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
+import org.aspectj.weaver.patterns.IToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -65,14 +66,16 @@ public class KnowledgeProcessor {
                 }
                 combination.add(synonymSynset);
             }
-            if (!(combination.containsAll(words)&&words.containsAll(combination))) { //We could not get synset combination for any of the words in Q
+            if (!(combination.containsAll(words) && words.containsAll(combination))) { //We could not get synset combination for any of the words in Q
                 synsetCombinations.add(combination);
             }
 
-            System.out.println("Total search combinations: "+synsetCombinations.size());
+            System.out.println("Total search combinations: " + synsetCombinations.size());
+            boolean fuzzy = true; // for the first combination that is the word
             for (List<Word> synsetCombination : synsetCombinations) {
                 collector = TopScoreDocCollector.create(hitsPerPage, totalHitsThreshold);
-                hits = query(formQuery(synsetCombination), collector);
+                hits = query(formQuery(synsetCombination, fuzzy), collector);
+                fuzzy = false; // for the second combination that is the synsets
                 if (hits != null) {
                     //System.out.println("Found " + hits.length + " hits.");
                     for (int i = 0; i < hits.length; ++i) {
@@ -89,7 +92,7 @@ public class KnowledgeProcessor {
                         hypernymCount = Integer.parseInt(d.get("hypernymCount"));
                         hyponymCount = Integer.parseInt(d.get("hyponymCount"));
                         //TODO: Move weightage to properties/database and come up with a good number
-                        if (synonymCount+hypernymCount+hyponymCount == 0) {
+                        if (synonymCount + hypernymCount + hyponymCount == 0) {
                             synScore = 1;
                         } else {
                             synScore = 0.99;//(exactCount * 1 + synonymCount * 0.9 + hypernymCount * 0.8 + hyponymCount * 0.7) / (exactCount + synonymCount + hypernymCount + hyponymCount);
@@ -105,6 +108,42 @@ public class KnowledgeProcessor {
             ioException.printStackTrace();
         }
         return response;
+    }
+
+    public void indexQuestion(Question question) {
+        //Open the index for Append
+        TopScoreDocCollector collector;
+        try {
+            IndexWriter indexWriter = searchIndex.getIndexWriterForWrite("APPEND");
+            List<String> top2QueriesForTheQuestion = null;
+            top2QueriesForTheQuestion = addQuestionToIndex(indexWriter, question);
+            searchIndex.closeIndexWriter(indexWriter);
+
+            String query = top2QueriesForTheQuestion.get(0);
+            collector = TopScoreDocCollector.create(1, 1); //need to create this for every query
+            ScoreDoc[] hits = query(query, collector);
+            if (hits.length > 0) {
+                question.setMaxPossibleScoreForMainWords(hits[0].score);
+                System.out.println("Calc max: " + query + " " + question.getMaxPossibleScoreForMainWords());
+            } else {
+                System.out.println("Strange question: " + question.getQuestionString());
+            }
+
+            query = top2QueriesForTheQuestion.get(1);
+            collector = TopScoreDocCollector.create(1, 1); //need to create this for every query
+            hits = query(query, collector);
+            if (hits.length > 0) {
+                question.setMaxPossibleScoreForSynsets(hits[0].score);
+                System.out.println("Calc max syn: " + query + " " + question.getMaxPossibleScoreForSynsets());
+            } else {
+                System.out.println("No hits for synsets!: " + question.getQuestionString());
+            }
+
+            jtm.update("update question set max_possible_score_main = ?, max_possible_score_synsets = ? where question_id = ?",
+                    question.getMaxPossibleScoreForMainWords(), question.getMaxPossibleScoreForSynsets(), question.getQuestionId());
+        } catch (IOException | ParseException | JWNLException e) {
+            e.printStackTrace();
+        }
     }
 
     //@PostConstruct
@@ -124,23 +163,23 @@ public class KnowledgeProcessor {
             });
 
             //Open the index for write
-            IndexWriter indexWriter = searchIndex.getMainIndexWriterForWrite();
+            IndexWriter indexWriter = searchIndex.getIndexWriterForWrite("CREATE");
             List<List<String>> topScorerList = new ArrayList<>();
             for (Question question : questionList) {
                 topScorerList.add(addQuestionToIndex(indexWriter, question));
             }
-            searchIndex.closeMainIndexWriter(indexWriter);
+            searchIndex.closeIndexWriter(indexWriter);
 
             //For all the questions, set the max score
             int i = 0;
             for (Question question : questionList) {
                 //List<Word> words = sentenceAnalyzer.getPosElements(question.getQuestionString());
-                String query =  topScorerList.get(i).get(0);
+                String query = topScorerList.get(i).get(0);
                 collector = TopScoreDocCollector.create(1, 1); //need to create this for every query
                 ScoreDoc[] hits = query(query, collector);
                 if (hits.length > 0) {
                     question.setMaxPossibleScoreForMainWords(hits[0].score);
-                    System.out.println("Calc max: "+query+" "+question.getMaxPossibleScoreForMainWords());
+                    System.out.println("Calc max: " + query + " " + question.getMaxPossibleScoreForMainWords());
                 } else {
                     System.out.println("Strange question: " + question.getQuestionString());
                 }
@@ -150,7 +189,7 @@ public class KnowledgeProcessor {
                 hits = query(query, collector);
                 if (hits.length > 0) {
                     question.setMaxPossibleScoreForSynsets(hits[0].score);
-                    System.out.println("Calc max syn: "+query+" "+question.getMaxPossibleScoreForSynsets());
+                    System.out.println("Calc max syn: " + query + " " + question.getMaxPossibleScoreForSynsets());
                 } else {
                     System.out.println("No hits for synsets!: " + question.getQuestionString());
                 }
@@ -305,14 +344,14 @@ public class KnowledgeProcessor {
                 doc.add(new TextField("mainWords", mainWords.toString(), Field.Store.NO));
             }
 
-            //TODO: Limit the System.out.printlns
+            //TODO: OK: Limit the System.out.printlns
 
             doc.add(new StoredField("exactCount", exactCount));
             doc.add(new StoredField("synonymCount", synonymCount));
             doc.add(new StoredField("hypernymCount", hypernymCount));
             doc.add(new StoredField("hyponymCount", hyponymCount));
             doc.add(new StoredField("questionId", question.getQuestionId()));
-            doc.add(new StoredField("debug"," wc: " + whClause.toString() +
+            doc.add(new StoredField("debug", " wc: " + whClause.toString() +
                     //"nouns:" + nouns.toString() +
                     //" verbs: " + verbs.toString() +
                     " cd: " + cardinalNumber.toString() +
@@ -321,16 +360,22 @@ public class KnowledgeProcessor {
                     " mainwords: " + mainWords.toString()
             )); //Storing the field for analyzing
 
+            String token;
             if (j == 0 || j == product) { // Return the first (main) and last combination to help calculate top score
                 StringBuilder query = new StringBuilder();
+                if (j == product) {
+                    token="$1~$2";
+                } else {
+                    token="$1$2";
+                }
                 if (cardinalNumber.length() > 0)
                     query.append(" +cd:(" + cardinalNumber.toString().trim() + ")");
                 if (whClause.length() > 0)
                     query.append(" +wc:(" + whClause.toString().trim() + ")");
                 if (ads.length() > 0)
-                    query.append(" ads:(" + ads.toString().trim() + ")");
+                    query.append(" ads:(" + ads.toString().trim().replaceAll("([^\\s])(\\s|$)", token) + ")");
                 if (mainWords.length() > 0)
-                    query.append(" mainWords:(" + mainWords.toString().trim() + ")^10");
+                    query.append(" mainWords:(" + mainWords.toString().trim().replaceAll("([^\\s])(\\s|$)", token) + ")^10");
                 if (query.length() > 0)
                     top2Queries.add(0, query.toString());
             }
@@ -339,7 +384,7 @@ public class KnowledgeProcessor {
         return top2Queries;
     }
 
-    private String formQuery(List<Word> words) throws IOException, ParseException {
+    private String formQuery(List<Word> words, boolean fuzzy) throws IOException, ParseException {
         StringBuilder whClause = new StringBuilder();
         //StringBuilder entities = new StringBuilder();
         StringBuilder cardinalNumber = new StringBuilder();
@@ -356,9 +401,9 @@ public class KnowledgeProcessor {
             } else if (word.getPos() == BotPOS.WH_QUESTION) {
                 whClause.append(" ").append(word.getLemma());
             } else if (word.getPos() == BotPOS.ADVERB || word.getPos() == BotPOS.ADJECTIVE) {
-                ads.append(" " + word.getLemma());
+                ads.append(" " + word.getLemma()+(fuzzy?"~":""));
             } else {
-                mainWords.append(" " + word.getLemma());
+                mainWords.append(" " + word.getLemma()+(fuzzy?"~":""));
             }
         }
         StringBuilder query = new StringBuilder();
@@ -387,14 +432,13 @@ public class KnowledgeProcessor {
     private ScoreDoc[] query(String queryToUse, TopDocsCollector collector) throws IOException, ParseException {
         ScoreDoc[] hits = null;
         if (queryToUse.length() > 0) {
-            Query q = new QueryParser("", searchIndex.getMainAnalyzer()).parse(queryToUse);
+            Query q = new QueryParser("", searchIndex.getAnalyzer()).parse(queryToUse);
             searchIndex.getIndexSearcher().search(q, collector);
             hits = collector.topDocs().scoreDocs;
         }
         if (hits.length == 0) {
             System.out.println("No results.");
-        }
-        else {
+        } else {
             System.out.println("Query is:" + queryToUse + "highest hit: " + hits[0].score);
         }
         return hits;
