@@ -1,10 +1,12 @@
 package org.arjunkashyap.learningbot.Controller;
 
 import org.arjunkashyap.learningbot.Entity.AdminQuestionAnswerRelation;
+import org.arjunkashyap.learningbot.Entity.BotRequest;
 import org.arjunkashyap.learningbot.Entity.BotResponse;
 import org.arjunkashyap.learningbot.process.AdminProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,14 +31,68 @@ public class AdminComponentController {
 
     @PostMapping(
             value = "/reInitialize", consumes = "application/json", produces = "application/json")
-    public BotResponse reInitialize() {
+    public BotResponse reInitialize(@RequestBody BotRequest request) {
         long startTime = System.currentTimeMillis();
 
-        adminProcessor.reInitialize();
+        adminProcessor.reInitialize(request.getInput());
         BotResponse response = new BotResponse();
         response.setStatus("Reinitialized successfully");
         long elapsedTime = System.currentTimeMillis() - startTime;
         response.setResponseTime(elapsedTime);
+        return response;
+    }
+
+    @PostMapping(
+            value = "/unansweredQuestions", consumes = "application/json", produces = "application/json")
+    public BotResponse unansweredQuestions() {//TODO:
+        BotResponse response = new BotResponse();
+        List<AdminQuestionAnswerRelation> listOfQuestions = adminProcessor.unansweredQuestions();
+        StringBuilder s = new StringBuilder("question_id\t\tquestion\t\t\t\t\tmax_possible_searcher_score\tanswer_id\tanswer\tmanual\tvotes");
+        Map<String, Object> debugInfo = new TreeMap<>();
+        debugInfo.put("#", s.toString());
+        int i = 0;
+        for (AdminQuestionAnswerRelation r: listOfQuestions) {
+            i++;
+            debugInfo.put(i+"", "\n"+r.getQuestion().getQuestionId()+
+                    "\t"+r.getQuestion().getQuestionString()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForMainWords()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForSynsets()+
+                    "\t"+r.getAnswer().getAnswerId()+
+                    "\t"+r.getAnswer().getAnswerString()+
+                    "\t"+r.isManual()+
+                    "\t"+r.getVotes()
+            );
+        }
+        //response.setDebugInfo(s.toString());//TODO: LOW: spacing of header and questions
+        response.setDebugInfo(debugInfo);
+
+        return response;
+    }
+
+    @PostMapping(
+            value = "/parameters", consumes = "application/json", produces = "application/json")
+    public BotResponse parameters() {//TODO:
+        BotResponse response = new BotResponse();
+        List<AdminQuestionAnswerRelation> listOfQuestions = adminProcessor.parameters();
+        StringBuilder s = new StringBuilder("question_id\t\tquestion\t\t\t\t\tmax_possible_searcher_score\tanswer_id\tanswer\tmanual\tvotes");
+        Map<String, Object> debugInfo = new TreeMap<>();
+        debugInfo.put("#", s.toString());
+        int i = 0;
+        for (AdminQuestionAnswerRelation r: listOfQuestions) {
+            i++;
+            debugInfo.put(i+"", "\n"+r.getQuestion().getQuestionId()+
+                    "\t"+r.getQuestion().getQuestionString()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForMainWords()+
+                    "\t"+r.getQuestion().getMaxPossibleScoreForSynsets()+
+                    "\t"+r.getAnswer().getAnswerId()+
+                    "\t"+r.getAnswer().getAnswerString()+
+                    "\t"+r.isManual()+
+                    "\t"+r.getVotes()
+            );
+        }
+        //response.setDebugInfo(s.toString());//TODO: LOW: spacing of header and questions
+        response.setDebugInfo(debugInfo);
+
         return response;
     }
 

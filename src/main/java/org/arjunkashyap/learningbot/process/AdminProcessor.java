@@ -24,11 +24,59 @@ public class AdminProcessor {
         knowledgeProcessor.indexAllQuestions();
     }
 
-    public void reInitialize() {
-        sqlutil.runSqlFile("classpath:/InitialData.sql");
+    public void reInitialize(String fileName) {
+        sqlutil.runSqlFile("classpath:/"+fileName);
     }
 
     public List<AdminQuestionAnswerRelation> dumpQuestions() {
+        List<AdminQuestionAnswerRelation> questionList = jtm.query("select * from question q, QUESTION_ANSWER_RELATION r, answer a " +
+                "where q.question_id = r.question_id " +
+                "and r.answer_id=a.answer_id", new RowMapper<AdminQuestionAnswerRelation>() {
+            @Override
+            public AdminQuestionAnswerRelation mapRow(ResultSet rs, int rowNum) throws SQLException {
+                AdminQuestionAnswerRelation r = new AdminQuestionAnswerRelation();
+                Question question = new Question();
+                question.setQuestionId(rs.getInt("question_id"));
+                question.setQuestionString(rs.getString("question"));
+                question.setMaxPossibleScoreForMainWords(rs.getFloat("max_possible_score_main"));
+                question.setMaxPossibleScoreForSynsets(rs.getFloat("max_possible_score_synsets"));
+                r.setQuestion(question);
+                Answer answer = new Answer();
+                answer.setAnswerId(rs.getInt("answer_id"));
+                answer.setAnswerString(rs.getString("answer"));
+                r.setAnswer(answer);
+                r.setManual(rs.getBoolean("manual"));
+                r.setVotes(rs.getInt("votes"));
+                return r;
+            }
+        });
+        return questionList;
+    }
+    public List<AdminQuestionAnswerRelation> unansweredQuestions() {
+        List<AdminQuestionAnswerRelation> questionList = jtm.query("select * from question q, QUESTION_ANSWER_RELATION r, answer a " +
+                "where q.question_id = r.question_id " +
+                "and r.answer_id=a.answer_id", new RowMapper<AdminQuestionAnswerRelation>() {
+            @Override
+            public AdminQuestionAnswerRelation mapRow(ResultSet rs, int rowNum) throws SQLException {
+                AdminQuestionAnswerRelation r = new AdminQuestionAnswerRelation();
+                Question question = new Question();
+                question.setQuestionId(rs.getInt("question_id"));
+                question.setQuestionString(rs.getString("question"));
+                question.setMaxPossibleScoreForMainWords(rs.getFloat("max_possible_score_main"));
+                question.setMaxPossibleScoreForSynsets(rs.getFloat("max_possible_score_synsets"));
+                r.setQuestion(question);
+                Answer answer = new Answer();
+                answer.setAnswerId(rs.getInt("answer_id"));
+                answer.setAnswerString(rs.getString("answer"));
+                r.setAnswer(answer);
+                r.setManual(rs.getBoolean("manual"));
+                r.setVotes(rs.getInt("votes"));
+                return r;
+            }
+        });
+        return questionList;
+    }
+    public List<AdminQuestionAnswerRelation> parameters() {
         List<AdminQuestionAnswerRelation> questionList = jtm.query("select * from question q, QUESTION_ANSWER_RELATION r, answer a " +
                 "where q.question_id = r.question_id " +
                 "and r.answer_id=a.answer_id", new RowMapper<AdminQuestionAnswerRelation>() {

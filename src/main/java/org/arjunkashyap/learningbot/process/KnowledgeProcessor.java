@@ -13,7 +13,6 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
-import org.aspectj.weaver.patterns.IToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -424,7 +423,6 @@ public class KnowledgeProcessor {
         if (mainWords.length() > 0) {
             query.append(" mainWords:(" + mainWords.toString().trim() + ")^10");
         }
-        //TODO: Implement fuzzy query?
         //System.out.println("Query is:" + queryToUse);
         return query.toString();
     }

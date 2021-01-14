@@ -1,0 +1,7 @@
+This project uses the following libraries:
+-----------------------------------------
+spring-boot => Apache License Version 2.0
+h2 database => MPL 2.0 (Mozilla Public License Version 2.0) or  EPL 1.0 (Eclipse Public License).
+stanford-corenlp => GNU General Public License v3
+lucene => Apache License 2.0
+extjwnl => BSD license
