@@ -1,0 +1,3 @@
+- "Which person" shoudl match "Who"
+- Take care of other English grammar
+- Compound words like "face mask" -> Did he use face mask?
