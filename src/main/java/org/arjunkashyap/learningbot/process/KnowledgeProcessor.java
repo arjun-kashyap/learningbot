@@ -260,7 +260,7 @@ public class KnowledgeProcessor {
                 counts[i] = 1;
             }
         }
-        int[][] allCombinations = Utilities.getAllCombinations(counts, product);
+        int[][] allCombinations = Utilities.getAllCombinations(counts);
 
         for (int j = 0; j < product + 1; j++) { //Added +1 for words in the main sentence
             doc = new Document();

@@ -14,7 +14,11 @@ import java.util.Set;
 
 @Component
 public class Utilities<T> {
-    public static int[][] getAllCombinations(int[] input, int product) {
+    public static int[][] getAllCombinations(int[] input) {
+        int product = 1;
+        for (int i = 0; i<input.length;i++) {
+            product *= input[i];
+        }
         System.out.println("HEAP: "+product+" "+input.length);
         int[][] combinations = new int[input.length][product];
         int repeat = product;
