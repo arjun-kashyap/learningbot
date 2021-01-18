@@ -1,11 +1,14 @@
 package org.arjunkashyap.learningbot.Entity;
 
+import edu.cmu.lti.jawjaw.pobj.Link;
+
 import java.util.Objects;
 
-public class Word {
+public class BotWord {
     protected String word;
     protected String lemma;
     protected BotPOS pos;
+    protected Link linkType;
 
     public String getWord() {
         return word;
@@ -31,11 +34,19 @@ public class Word {
         this.pos = pos;
     }
 
+    public Link getLinkType() {
+        return linkType;
+    }
+
+    public void setLinkType(Link linkType) {
+        this.linkType = linkType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Word that = (Word) o;
+        BotWord that = (BotWord) o;
         return word.equals(that.word) &&
                 lemma.equals(that.lemma) &&
                 pos.equals(that.pos);

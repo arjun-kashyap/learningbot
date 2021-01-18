@@ -1,16 +1,12 @@
 package org.arjunkashyap.learningbot.common;
 
-import org.arjunkashyap.learningbot.Entity.Synonym;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class Utilities<T> {
@@ -39,7 +35,6 @@ public class Utilities<T> {
             ObjectOutputStream so = new ObjectOutputStream(bo);
             so.writeObject(myObject);
             so.flush();
-            //serializedObject = bo.toString();
             serializedObject = Base64.getEncoder().encodeToString(bo.toByteArray());
         } catch (Exception e) {
             System.out.println(e);
@@ -50,7 +45,6 @@ public class Utilities<T> {
     public T deserializeFromString(String serializedObject) {
         T obj = null;
         try {
-            //byte b[] = serializedObject.getBytes();
             byte b[] = Base64.getDecoder().decode(serializedObject);
             ByteArrayInputStream bi = new ByteArrayInputStream(b);
             ObjectInputStream si = new ObjectInputStream(bi);

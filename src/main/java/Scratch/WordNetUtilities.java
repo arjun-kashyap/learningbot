@@ -1,11 +1,11 @@
 package Scratch;
 
 import org.arjunkashyap.learningbot.Entity.BotPOS;
-import org.arjunkashyap.learningbot.Entity.Synonym;
 import edu.cmu.lti.jawjaw.db.SenseDAO;
 import edu.cmu.lti.jawjaw.db.SynlinkDAO;
 import edu.cmu.lti.jawjaw.db.WordDAO;
 import edu.cmu.lti.jawjaw.pobj.*;
+import org.arjunkashyap.learningbot.Entity.BotWord;
 
 import java.util.*;
 
@@ -15,17 +15,16 @@ public class WordNetUtilities {
     For each of the linked synsets, get the words and their senses
     Compare the similarity of the original word senses with these (same POS)
      */
-    public static List<Synonym> getTopSynonyms(String inputWord, BotPOS inputPos, int limit) {
-        List<Synonym> synonyms = new ArrayList<>();
-        List<Synonym> hypernyms = new ArrayList<>();
-        List<Synonym> hyponyms = new ArrayList<>();
+    public static List<BotWord> getTopSynonyms(String inputWord, BotPOS inputPos, int limit) {
+        List<BotWord> synonyms = new ArrayList<>();
+        List<BotWord> hypernyms = new ArrayList<>();
+        List<BotWord> hyponyms = new ArrayList<>();
 
-        Synonym mainWord = new Synonym();
-        mainWord.setWord(inputWord);
-        mainWord.setScore(100);
-        mainWord.setLinkType(Link.also);
-        mainWord.setPos(inputPos);
-        synonyms.add(mainWord);
+        BotWord mainBotWord = new BotWord();
+        mainBotWord.setWord(inputWord);
+        mainBotWord.setLinkType(Link.also);
+        mainBotWord.setPos(inputPos);
+        synonyms.add(mainBotWord);
         inputWord.replace(" ", "_"); // Wordnet compound words have _
 
         if (limit > 1 && inputPos != BotPOS.CARDINAL_NUMBER && inputPos != BotPOS.WH_QUESTION) {
@@ -57,8 +56,8 @@ public class WordNetUtilities {
         } else if (inputPos == BotPOS.VERB) {
             pos = POS.v;
         }
-        List<Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, pos);
-        for (Word word : words) {
+        List<edu.cmu.lti.jawjaw.pobj.Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, pos);
+        for (edu.cmu.lti.jawjaw.pobj.Word word : words) {
             List<Sense> sensesOfInputWord = SenseDAO.findSensesByWordid(word.getWordid());
             for (Sense senseOfInputWord : sensesOfInputWord) {
                 String synsetId = senseOfInputWord.getSynset();
@@ -68,14 +67,14 @@ public class WordNetUtilities {
         return synsets;
     }
 
-    private static List<Synonym> getWordsInSynset(String synsetId, Link linkType, BotPOS inputPos) {
-        List<Synonym> synonyms = new ArrayList<>();
+    private static List<BotWord> getWordsInSynset(String synsetId, Link linkType, BotPOS inputPos) {
+        List<BotWord> synonyms = new ArrayList<>();
         List<Synlink> synlinks = SynlinkDAO.findSynlinksBySynsetAndLink(synsetId, Link.hype);
         for (Synlink synlink : synlinks) {
             List<Sense> sensesForFoundSynset = SenseDAO.findSensesBySynsetAndLang(synlink.getSynset1(), Lang.eng);
             for (Sense senseOfFoundSynset : sensesForFoundSynset) {
-                Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
-                Synonym synonym = new Synonym();
+                edu.cmu.lti.jawjaw.pobj.Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
+                BotWord synonym = new BotWord();
                 synonym.setWord(foundWord.getLemma().replace('_', ' ')); //Wordnet gives multi-word synonyms with _
                 synonym.setLinkType(linkType);
                 synonym.setPos(inputPos);

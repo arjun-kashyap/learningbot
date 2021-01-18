@@ -9,19 +9,16 @@ import edu.cmu.lti.lexical_db.NictWordNet;
 import edu.cmu.lti.lexical_db.data.Concept;
 import edu.cmu.lti.ws4j.Relatedness;
 import edu.cmu.lti.ws4j.RelatednessCalculator;
-import edu.cmu.lti.ws4j.impl.Lin;
 import edu.cmu.lti.ws4j.impl.WuPalmer;
-import edu.cmu.lti.ws4j.util.PorterStemmer;
 import edu.cmu.lti.ws4j.util.WS4JConfiguration;
-import net.didion.jwnl.data.IndexWordSet;
-import net.didion.jwnl.dictionary.Dictionary;
-import org.arjunkashyap.learningbot.Entity.Synonym;
+import org.arjunkashyap.learningbot.Entity.BotWord;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class AdvancedAPIDemoLite {
+
     public AdvancedAPIDemoLite() {
     }
     static ILexicalDatabase db = new NictWordNet();
@@ -35,11 +32,11 @@ public class AdvancedAPIDemoLite {
     Compare the similarity of the original word senses with these (same POS)
      */
 
-    private static List<Synonym> getTopSynonyms(String inputWord, POS inputPos) {
+    private static List<BotWord> getTopSynonyms(String inputWord, POS inputPos) {
 
-        List<Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, inputPos);
-        List<Synonym> synonyms = new ArrayList<>();
-        for (Word word : words) {
+        List<edu.cmu.lti.jawjaw.pobj.Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, inputPos);
+        List<BotWord> synonyms = new ArrayList<>();
+        for (edu.cmu.lti.jawjaw.pobj.Word word : words) {
             List<Sense> sensesOfInputWord = SenseDAO.findSensesByWordid(word.getWordid());
             for (Sense senseOfInputWord : sensesOfInputWord) {
                 System.out.println("INSIDE SENSES");
@@ -55,14 +52,13 @@ public class AdvancedAPIDemoLite {
                         l = synlink.getSynset2();//ss
                     List<Sense> sensesForFoundSynset = SenseDAO.findSensesBySynsetAndLang(l, Lang.eng);
                     for (Sense senseOfFoundSynset : sensesForFoundSynset) {
-                        Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
+                        edu.cmu.lti.jawjaw.pobj.Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
 
                         System.out.print(foundWord.getLemma()+" ");
                         if (foundWord.getPos() == inputPos) {
                             Relatedness s = rc.calcRelatednessOfSynset(new Concept(synsetId, inputPos), new Concept(synlink.getSynset2(), inputPos));
-                            Synonym synonym = new Synonym();
+                            BotWord synonym = new BotWord();
                             synonym.setWord(foundWord.getLemma());
-                            synonym.setScore((int) Math.round(s.getScore()*100));
                             synonym.setLinkType(synlink.getLink());
                             synonyms.add(synonym);
                         }
@@ -79,8 +75,8 @@ public class AdvancedAPIDemoLite {
     }
 
     public static void main(String[] args) {//Gives only same level
-        List<Synonym> x = getTopSynonyms("meaning", POS.n);
-        for (Synonym a : x) {
+        List<BotWord> x = getTopSynonyms("meaning", POS.n);
+        for (BotWord a : x) {
             System.out.println(a.getWord());
         }
 

@@ -8,8 +8,9 @@ import net.sf.extjwnl.data.list.PointerTargetNode;
 import net.sf.extjwnl.data.list.PointerTargetNodeList;
 import net.sf.extjwnl.dictionary.Dictionary;
 import org.arjunkashyap.learningbot.Entity.BotPOS;
-import org.arjunkashyap.learningbot.Entity.Synonym;
+import org.arjunkashyap.learningbot.Entity.BotWord;
 import org.arjunkashyap.learningbot.Entity.SynonymSynset;
+import org.arjunkashyap.learningbot.Entity.SynonymSynsetComparatorByType;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -31,7 +32,7 @@ public class WordnetUtils {
 
     public static void main(String[] args) throws JWNLException {
         List<SynonymSynset> synonyms;
-        Synonym synonym;
+        BotWord synonym;
         WordnetUtils wordnetUtils = new WordnetUtils();
         //synonyms = wordnetUtils.getVerbForNounWithPreposition("meaning");
         //synonyms = wordnetUtils.getWordsInSameLevel(wordInWordNet(POS.NOUN, "phone"), BotPOS.noun);
@@ -41,8 +42,8 @@ public class WordnetUtils {
         //synonyms = wordnetUtils.getSiblings(wordInWordNet(POS.VERB, "catch up"), BotPOS.noun);
         //synonyms = wordnetUtils.getTopSynonyms("phone", BotPOS.verb, 10);
         //synonym = wordnetUtils.getTopVerbForNounWithPreposition("president");
-        synonyms = wordnetUtils.getTopSynsets("big", BotPOS.ADJECTIVE, 1000000);
-        //synonyms = wordnetUtils.getTopSynsets("phone", BotPOS.NOUN,1000000);
+        //synonyms = wordnetUtils.getTopSynsets("big", BotPOS.ADJECTIVE, 10000
+        synonyms = wordnetUtils.getTopSynsets("phone", BotPOS.NOUN,1000000);
         System.out.println(synonyms);
         System.out.println(wordnetUtils.getSynsetsInSameLevel(dictionary.getIndexWord(POS.NOUN, "Phone"), BotPOS.NOUN));
     }
@@ -117,7 +118,9 @@ public class WordnetUtils {
                 e.printStackTrace();
             }
         }
-        return new ArrayList<>(synonyms);
+        List<SynonymSynset> x=new ArrayList<>(synonyms);
+        x.sort(new SynonymSynsetComparatorByType());
+        return x;
     }
 
     public SynonymSynset getSynsetsOffsetInSameLevel(String word, BotPOS inputPos) {
@@ -158,7 +161,7 @@ public class WordnetUtils {
         Set<String> uniqueWords = new HashSet<>();
         Set<SynonymSynset> uniqueSynsets = new HashSet<>();
         for (Synset synset : word.getSenses()) {//Get all words in all synsets where our main word is present
-            for (Word x : synset.getWords()) {
+            for (net.sf.extjwnl.data.Word x : synset.getWords()) {
                 uniqueWords.add(x.getLemma());
             }
         }
@@ -222,11 +225,11 @@ public class WordnetUtils {
         return new ArrayList<>(synsets);
     }
 
-    public Synonym getTopVerbForNounWithPreposition(String inputWord) {
-        List<Synonym> topVerbList = getVerbForNounWithPreposition(inputWord);
-        Synonym topVerb = null;
+    public BotWord getTopVerbForNounWithPreposition(String inputWord) {
+        List<BotWord> topVerbList = getVerbForNounWithPreposition(inputWord);
+        BotWord topVerb = null;
         double previousScore = Double.MAX_VALUE;
-        for (Synonym verb : topVerbList) {
+        for (BotWord verb : topVerbList) {
             double score = ed.score(inputWord, verb.getWord()); // Using Lucene's EditDistance to get closest verbs
             if (score < previousScore) {
                 topVerb = verb;
@@ -236,12 +239,12 @@ public class WordnetUtils {
         return topVerb;
     }
 
-    private List<Synonym> getVerbForNounWithPreposition(String inputWord) {
+    private List<BotWord> getVerbForNounWithPreposition(String inputWord) {
         Set<Synset> synsets = new HashSet<>();
         Set<Pointer> pointers = new HashSet<>();
         Set<Synset> targetSynsets = new HashSet<>();
-        Set<Word> verbs = new HashSet<>();
-        Set<Synonym> synverbs = new HashSet<>();
+        Set<net.sf.extjwnl.data.Word> verbs = new HashSet<>();
+        Set<BotWord> synverbs = new HashSet<>();
         IndexWord word = null;
         try {
             word = wordInWordNet(BotPOS.NOUN, inputWord);
@@ -264,14 +267,13 @@ public class WordnetUtils {
             for (Synset targetSynset : targetSynsets) {
                 verbs.addAll(targetSynset.getWords());
             }
-            for (Word verb : verbs) {
+            for (net.sf.extjwnl.data.Word verb : verbs) {
                 if (verb.getPOS() == POS.VERB) {
-                    Synonym synonym = new Synonym();
+                    BotWord synonym = new BotWord();
                     synonym.setWord(verb.getLemma());
                     synonym.setLemma(verb.getLemma());
                     synonym.setLinkType(Link.also);
                     synonym.setPos(BotPOS.VERB);
-                    synonym.setScore(100);
                     synverbs.add(synonym);
                 }
             }

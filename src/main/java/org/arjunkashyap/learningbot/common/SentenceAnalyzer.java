@@ -4,9 +4,8 @@ import edu.stanford.nlp.pipeline.CoreEntityMention;
 import net.sf.extjwnl.JWNLException;
 import net.sf.extjwnl.data.IndexWord;
 import org.arjunkashyap.learningbot.Entity.BotPOS;
+import org.arjunkashyap.learningbot.Entity.BotWord;
 import org.arjunkashyap.learningbot.Entity.Question;
-import org.arjunkashyap.learningbot.Entity.Synonym;
-import org.arjunkashyap.learningbot.Entity.Word;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -41,7 +40,7 @@ public class SentenceAnalyzer implements InitializingBean{
         props.setProperty("parse.maxlen", "100");
         SentenceAnalyzer s = new SentenceAnalyzer();
         s.pipeline = new StanfordCoreNLP(props);
-        List<Word> x = s.getPosElements("Did John and their young mother aged 60  die of pneumonia?");
+        List<BotWord> x = s.getPosElements("Did John and their young mother aged 60  die of pneumonia?");
         System.out.println(x);
     }
 
@@ -84,10 +83,10 @@ public class SentenceAnalyzer implements InitializingBean{
         return processedQuestion;
     }
 
-    public List<Word> getPosElements(String text) throws JWNLException {
-        List<Word> classifiedList = new ArrayList<>();
+    public List<BotWord> getPosElements(String text) throws JWNLException {
+        List<BotWord> classifiedList = new ArrayList<>();
         CoreDocument document = pipeline.processToCoreDocument(text);
-        Word word, previousWord;
+        BotWord botWord, previousBotWord;
         boolean whWordFound = false;
 
         List<CoreEntityMention> entitiesList = document.entityMentions();
@@ -105,36 +104,36 @@ public class SentenceAnalyzer implements InitializingBean{
                     CoreEntityMention entity = labelEntityMap.get(tok);
                     if (entitiesList.contains(entity)) { //else already added a multi-word entity
                         System.out.println("Adding entity " + entity.text());//entity put
-                        word = new Word();
-                        word.setLemma(entity.text().toLowerCase());
-                        word.setWord(entity.text().toLowerCase());
-                        word.setPos(BotPOS.ENTITY);
-                        classifiedList.add(word);
+                        botWord = new BotWord();
+                        botWord.setLemma(entity.text().toLowerCase());
+                        botWord.setWord(entity.text().toLowerCase());
+                        botWord.setPos(BotPOS.ENTITY);
+                        classifiedList.add(botWord);
                         entitiesList.remove(entity);
                         //System.out.println("Removing "+tok.lemma()+" ");
                     }
                 } else if (tok.tag().equals("IN") || tok.tag().equals("TO")) { //Take care of "preposition"
                     if (classifiedList.size() >= 1) { //TODO: Check this
-                        previousWord = classifiedList.get(classifiedList.size() - 1);
+                        previousBotWord = classifiedList.get(classifiedList.size() - 1);
                     }
                     else {
-                        previousWord = null;
+                        previousBotWord = null;
                     }
-                    if  ((previousWord != null) && (previousWord.getPos() == BotPOS.NOUN)) {
-                        Synonym verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
+                    if  ((previousBotWord != null) && (previousBotWord.getPos() == BotPOS.NOUN)) {
+                        BotWord verb = wordnetUtils.getTopVerbForNounWithPreposition(tok.lemma());
                         if (verb != null) {
-                            previousWord.setWord(verb.getWord());
-                            previousWord.setLemma(verb.getLemma());
-                            previousWord.setPos(BotPOS.VERB);
+                            previousBotWord.setWord(verb.getWord());
+                            previousBotWord.setLemma(verb.getLemma());
+                            previousBotWord.setPos(BotPOS.VERB);
                         }
                     }
                 } else if (tok.tag().equals("RP")) { //Take care of "particle"/. E.g. hang out in Q# 21
-                    previousWord = classifiedList.get(classifiedList.size() - 1);
-                    if  ((previousWord != null) && (previousWord.getPos() == BotPOS.VERB)) {
-                        IndexWord verb = wordnetUtils.wordInWordNet(BotPOS.VERB, previousWord.getLemma() + " " + tok.lemma());
+                    previousBotWord = classifiedList.get(classifiedList.size() - 1);
+                    if  ((previousBotWord != null) && (previousBotWord.getPos() == BotPOS.VERB)) {
+                        IndexWord verb = wordnetUtils.wordInWordNet(BotPOS.VERB, previousBotWord.getLemma() + " " + tok.lemma());
                         if (verb != null) {
-                            previousWord.setWord(previousWord.getWord() + " " + tok.word());
-                            previousWord.setLemma(previousWord.getLemma() + " " + tok.lemma());
+                            previousBotWord.setWord(previousBotWord.getWord() + " " + tok.word());
+                            previousBotWord.setLemma(previousBotWord.getLemma() + " " + tok.lemma());
                         }
                     }
                 } else if (!EnglishAnalyzer.getDefaultStopSet().contains(tok.lemma()) && ((
@@ -144,26 +143,26 @@ public class SentenceAnalyzer implements InitializingBean{
                                     tok.tag().startsWith("JJ") ||
                                     tok.tag().startsWith("RB") ||
                                     tok.tag().startsWith("W")))) { // ||
-                    word = new Word();
-                    word.setLemma(tok.lemma().toLowerCase());
-                    word.setWord(tok.word().toLowerCase());
-                    classifiedList.add(word);
+                    botWord = new BotWord();
+                    botWord.setLemma(tok.lemma().toLowerCase());
+                    botWord.setWord(tok.word().toLowerCase());
+                    classifiedList.add(botWord);
                     if (tok.tag().startsWith("W")) {
-                        word.setPos(BotPOS.WH_QUESTION);
+                        botWord.setPos(BotPOS.WH_QUESTION);
                         whWordFound = true;
                         if (tok.lemma().toLowerCase().equals("be")) {
-                            word.setLemma("be-question");
+                            botWord.setLemma("be-question");
                         }
                     } else if (tok.tag().startsWith("NN")) {
-                        word.setPos(BotPOS.NOUN);
+                        botWord.setPos(BotPOS.NOUN);
                     } else if (tok.tag().startsWith("VB")) {
-                        word.setPos(BotPOS.VERB);
+                        botWord.setPos(BotPOS.VERB);
                     } else if (tok.tag().equals("CD")) {// CDs are not coming after we added NER
-                        word.setPos(BotPOS.CARDINAL_NUMBER);
+                        botWord.setPos(BotPOS.CARDINAL_NUMBER);
                     } else if (tok.tag().startsWith("JJ")){
-                        word.setPos(BotPOS.ADJECTIVE);
+                        botWord.setPos(BotPOS.ADJECTIVE);
                     } else if (tok.tag().startsWith("RB")){
-                        word.setPos(BotPOS.ADVERB);
+                        botWord.setPos(BotPOS.ADVERB);
                     }
                 }
             }
@@ -171,17 +170,17 @@ public class SentenceAnalyzer implements InitializingBean{
             if (!whWordFound && classifiedList.size() > 0) { // Use the first token as the WH clause
                 CoreLabel tok = tokens.get(0);
                 if (tok.lemma().equals(classifiedList.get(0).getLemma())) {
-                    word = classifiedList.get(0);
+                    botWord = classifiedList.get(0);
                 } else { // first token did not get added to the list due to stop list etc
-                    word = new Word();
-                    word.setLemma(tok.lemma().toLowerCase());
-                    word.setWord(tok.word().toLowerCase());
+                    botWord = new BotWord();
+                    botWord.setLemma(tok.lemma().toLowerCase());
+                    botWord.setWord(tok.word().toLowerCase());
                     if (tok.lemma().toLowerCase().equals("be")) {
-                        word.setLemma("be-question");
+                        botWord.setLemma("be-question");
                     }
-                    classifiedList.add(0, word);
+                    classifiedList.add(0, botWord);
                 }
-                word.setPos(BotPOS.WH_QUESTION);
+                botWord.setPos(BotPOS.WH_QUESTION);
             }
         }
         System.out.println(classifiedList);

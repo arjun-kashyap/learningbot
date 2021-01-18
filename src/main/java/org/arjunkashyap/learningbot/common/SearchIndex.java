@@ -10,7 +10,6 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.MMapDirectory;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +38,6 @@ public class SearchIndex {
             }
         }
 
-        //FileUtils.deleteDirectory(indexPath.toFile());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         if (mode.equals("CREATE")) {
             config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);

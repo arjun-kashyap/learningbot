@@ -4,7 +4,7 @@ import edu.cmu.lti.jawjaw.db.SenseDAO;
 import edu.cmu.lti.jawjaw.db.SynlinkDAO;
 import edu.cmu.lti.jawjaw.db.WordDAO;
 import edu.cmu.lti.jawjaw.pobj.*;
-import org.arjunkashyap.learningbot.Entity.Synonym;
+import org.arjunkashyap.learningbot.Entity.BotWord;
 
 import java.util.*;
 
@@ -18,8 +18,8 @@ public class AdvancedAPIDemoFinal {
 
     private static List<String> getSynsetsForWord(String inputWord, POS inputPos) {
         List<String> synsets = new ArrayList<>();
-        List<Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, inputPos);
-        for (Word word : words) {
+        List<edu.cmu.lti.jawjaw.pobj.Word> words = WordDAO.findWordsByLemmaAndPos(inputWord, inputPos);
+        for (edu.cmu.lti.jawjaw.pobj.Word word : words) {
             List<Sense> sensesOfInputWord = SenseDAO.findSensesByWordid(word.getWordid());
             for (Sense senseOfInputWord : sensesOfInputWord) {
                 String synsetId = senseOfInputWord.getSynset();
@@ -29,14 +29,14 @@ public class AdvancedAPIDemoFinal {
         return synsets;
     }
 
-    private static List<Synonym> getWordsInSynset(String synsetId, Link linkType) {
-        List<Synonym> synonyms = new ArrayList<>();
+    private static List<BotWord> getWordsInSynset(String synsetId, Link linkType) {
+        List<BotWord> synonyms = new ArrayList<>();
         List<Synlink> synlinks = SynlinkDAO.findSynlinksBySynsetAndLink(synsetId, Link.hype);
         for (Synlink synlink : synlinks) {
             List<Sense> sensesForFoundSynset = SenseDAO.findSensesBySynsetAndLang(synlink.getSynset1(), Lang.eng);
             for (Sense senseOfFoundSynset : sensesForFoundSynset) {
-                Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
-                Synonym synonym = new Synonym();
+                edu.cmu.lti.jawjaw.pobj.Word foundWord = WordDAO.findWordByWordid(senseOfFoundSynset.getWordid());
+                BotWord synonym = new BotWord();
                 synonym.setWord(foundWord.getLemma());
                 synonym.setLinkType(linkType);
                 synonyms.add(synonym);
@@ -70,16 +70,15 @@ public class AdvancedAPIDemoFinal {
         Set<String> allHyperSynsets = new HashSet<>();
         Set<String> allHypoSynsets = new HashSet<>();
 
-        Set<Synonym> synonyms = new HashSet<>();
-        Set<Synonym> hypernyms = new HashSet<>();
-        Set<Synonym> hyponyms = new HashSet<>();
+        Set<BotWord> synonyms = new HashSet<>();
+        Set<BotWord> hypernyms = new HashSet<>();
+        Set<BotWord> hyponyms = new HashSet<>();
 
         //Get other words at the same level
-        Synonym mainWord = new Synonym();
-        mainWord.setWord(inputWord);
-        mainWord.setScore(100);
+        BotWord mainBotWord = new BotWord();
+        mainBotWord.setWord(inputWord);
         //FIXME: mainWord.setPos(inputPos);
-        synonyms.add(mainWord);
+        synonyms.add(mainBotWord);
         sameLevelSynsets.addAll(getSynsetsForWord(inputWord, inputPos));
         for (String synsetId : sameLevelSynsets) {
             synonyms.addAll(getWordsInSynset(synsetId, Link.syns));
@@ -93,18 +92,18 @@ public class AdvancedAPIDemoFinal {
 
 //-------------------------------------------------
         System.out.println("Same Level count: " + synonyms.size());
-        for (Synonym x : synonyms) {
-            System.out.println(x.getWord()+" "+x.getScore());
+        for (BotWord x : synonyms) {
+            System.out.println(x.getWord());
         }
 
         System.out.println("Up Level count: " + hypernyms.size());
-        for (Synonym x : hypernyms) {
-            System.out.println(x.getWord()+" "+x.getScore());
+        for (BotWord x : hypernyms) {
+            System.out.println(x.getWord());
         }
 
         System.out.println("Down Level count: " + hyponyms.size());
-        for (Synonym x : hyponyms) {
-            System.out.println(x.getWord()+" "+x.getScore());
+        for (BotWord x : hyponyms) {
+            System.out.println(x.getWord());
         }
 
         if (synonyms.size() < limit) {

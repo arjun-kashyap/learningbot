@@ -36,6 +36,12 @@ public class KnowledgeProcessor {
     @Autowired
     WordnetUtils wordnetUtils;
 
+    public static void main(String[] args) {
+        int limit = 100;
+        int x = 9;
+        System.out.println((int)Math.pow(limit*1.0/x, 1.0/3));
+    }
+
     public List<Match> search(String question) throws JWNLException {
         List<Match> response = new ArrayList<>();
         int exactCount, synonymCount, hypernymCount, hyponymCount;
@@ -45,33 +51,33 @@ public class KnowledgeProcessor {
         TopScoreDocCollector collector;
         hitsPerPage = totalHitsThreshold = props.HITS_THRESHOLD;
 
-        List<Word> words = sentenceAnalyzer.getPosElements(question); //decompose the question string into words with POS tags
-        List<List<Word>> synsetCombinations = new ArrayList<>();
+        List<BotWord> botWords = sentenceAnalyzer.getPosElements(question); //decompose the question string into words with POS tags
+        List<List<BotWord>> synsetCombinations = new ArrayList<>();
 
         try {
-            synsetCombinations.add(words); //Add the input words as the first set
+            synsetCombinations.add(botWords); //Add the input words as the first set
 
-            Word synonymSynset;
-            List<Word> combination = new ArrayList<>();
+            BotWord synonymSynset;
+            List<BotWord> combination = new ArrayList<>();
 
-            for (Word word : words) {
-                if (word.getPos() == BotPOS.CARDINAL_NUMBER || word.getPos() == BotPOS.WH_QUESTION) {
-                    synonymSynset = word;
+            for (BotWord botWord : botWords) {
+                if (botWord.getPos() == BotPOS.CARDINAL_NUMBER || botWord.getPos() == BotPOS.WH_QUESTION) {
+                    synonymSynset = botWord;
                 } else {
-                    synonymSynset = wordnetUtils.getSynsetsOffsetInSameLevel(word.getLemma(), word.getPos());
+                    synonymSynset = wordnetUtils.getSynsetsOffsetInSameLevel(botWord.getLemma(), botWord.getPos());
                     if (synonymSynset == null) {
-                        synonymSynset = word;
+                        synonymSynset = botWord;
                     }
                 }
                 combination.add(synonymSynset);
             }
-            if (!(combination.containsAll(words) && words.containsAll(combination))) { //We could not get synset combination for any of the words in Q
+            if (!(combination.containsAll(botWords) && botWords.containsAll(combination))) { //We could not get synset combination for any of the words in Q
                 synsetCombinations.add(combination);
             }
 
             System.out.println("Total search combinations: " + synsetCombinations.size());
             boolean fuzzy = true; // for the first combination that is the word
-            for (List<Word> synsetCombination : synsetCombinations) {
+            for (List<BotWord> synsetCombination : synsetCombinations) {
                 collector = TopScoreDocCollector.create(hitsPerPage, totalHitsThreshold);
                 hits = query(formQuery(synsetCombination, fuzzy), collector);
                 fuzzy = false; // for the second combination that is the synsets
@@ -183,14 +189,18 @@ public class KnowledgeProcessor {
                     System.out.println("Strange question: " + question.getQuestionString());
                 }
 
-                query = topScorerList.get(i).get(1);
-                collector = TopScoreDocCollector.create(1, 1); //need to create this for every query
-                hits = query(query, collector);
-                if (hits.length > 0) {
-                    question.setMaxPossibleScoreForSynsets(hits[0].score);
-                    System.out.println("Calc max syn: " + query + " " + question.getMaxPossibleScoreForSynsets());
+                if (topScorerList.get(i).size() > 1) {
+                    query = topScorerList.get(i).get(1);
+                    collector = TopScoreDocCollector.create(1, 1); //need to create this for every query
+                    hits = query(query, collector);
+                    if (hits.length > 0) {
+                        question.setMaxPossibleScoreForSynsets(hits[0].score);
+                        System.out.println("Calc max syn: " + query + " " + question.getMaxPossibleScoreForSynsets());
+                    } else {
+                        System.out.println("No hits for synsets!: " + question.getQuestionString());
+                    }
                 } else {
-                    System.out.println("No hits for synsets!: " + question.getQuestionString());
+                    question.setMaxPossibleScoreForSynsets(Integer.MAX_VALUE);
                 }
 
                 jtm.update("update question set max_possible_score_main = ?, max_possible_score_synsets = ? where question_id = ?",
@@ -204,63 +214,90 @@ public class KnowledgeProcessor {
 
     private List<String> addQuestionToIndex(IndexWriter indexWriter, Question question) throws IOException, JWNLException {
         Document doc;
-        List<Synonym> mainSentence = new ArrayList<>();
-        List<List<SynonymSynset>> listOfRelatedSynsets = new ArrayList<>();
+        List<BotWord> mainSentenceList = new ArrayList<>();
+        List<List<SynonymSynset>> listOfListOfRelatedSynsets = new ArrayList<>();
         int exactCount, synonymCount, hypernymCount, hyponymCount;
 
-        List<Word> words = sentenceAnalyzer.getPosElements(question.getQuestionString());
+        List<BotWord> botWords = sentenceAnalyzer.getPosElements(question.getQuestionString());
         List<String> top2Queries = new ArrayList<>();
 
         int count = 0;
-        for (Word word : words) {
-            if (!(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(word.getLemma())) &&
-                    (word.getPos() == BotPOS.NOUN ||
-                            word.getPos() == BotPOS.VERB ||
-                            word.getPos() == BotPOS.ENTITY)) {//||
+        for (BotWord botWord : botWords) {
+            if (!(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(botWord.getLemma())) &&
+                    (botWord.getPos() == BotPOS.NOUN ||
+                            botWord.getPos() == BotPOS.VERB ||
+                            botWord.getPos() == BotPOS.ENTITY)) {//||
                 //word.getPos() == BotPOS.DERIVE_VERB)) { //Not getting synonyms for ADJ and ADV
                 count++;
             }
         }
 
-        int limit = Math.min(10, Math.max(1, props.COMBINATIONS_THRESHOLD / (int) Math.pow(10, count)));
+        int limit = props.COMBINATIONS_THRESHOLD; //Math.min(10, Math.max(1, props.COMBINATIONS_THRESHOLD / (int) Math.pow(10, count)));
 
-        for (Word word : words) {
-            BotPOS pos = word.getPos();
+        List<Integer> countOfSynAndSim = new ArrayList<>();
+        int availableCombinations =1;
+        int nonNullSynsets = 0;
+
+        for (BotWord botWord : botWords) {
+            BotPOS pos = botWord.getPos();
             //System.out.println("DEBUGGING" + word.getLemma() + " "+pos);
-            if (EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(word.getLemma())) {
+            if (EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(botWord.getLemma())) {
                 continue;
             }
-            Synonym mainWord = new Synonym();
-            mainWord.setWord(word.getWord());
-            mainWord.setLemma(word.getLemma());
-            mainWord.setScore(100);
-            mainWord.setLinkType(Link.also);
-            mainWord.setPos(pos);
+            BotWord mainBotWord = new BotWord();
+            mainBotWord.setWord(botWord.getWord());
+            mainBotWord.setLemma(botWord.getLemma());
+            mainBotWord.setLinkType(Link.also);
+            mainBotWord.setPos(pos);
             List<SynonymSynset> topSynsets;
-            mainSentence.add(mainWord);
+            mainSentenceList.add(mainBotWord);
             if (pos != BotPOS.CARDINAL_NUMBER || pos != BotPOS.WH_QUESTION) {
-                topSynsets = wordnetUtils.getTopSynsets(word.getLemma(), pos, limit);
+                topSynsets = wordnetUtils.getTopSynsets(botWord.getLemma(), pos, limit);
                 if (topSynsets.size() == 0) {
                     topSynsets = null;
+                    countOfSynAndSim.add(0);
+                } else {
+                    count=0;
+                    for (SynonymSynset s : topSynsets) {
+                        if (s.getLinkType() == Link.syns || s.getLinkType() == Link.sim) {
+                            count++;
+                        }
+                    }
+                    countOfSynAndSim.add(count);
+                    availableCombinations *= count;
+                    nonNullSynsets++;
                 }
             } else {
                 topSynsets = null;
+                countOfSynAndSim.add(0);
             }
-            listOfRelatedSynsets.add(topSynsets);
+            listOfListOfRelatedSynsets.add(topSynsets);
+        }
+        int product;
+        int[][] allCombinations = null;
+
+        if (availableCombinations > limit || nonNullSynsets == 0) {
+            product = 0;
+        } else {
+            //compute the fraction
+            double factor = Math.pow(limit*1.0/availableCombinations, 1.0/nonNullSynsets);
+            // create a new list with factored values
+            int[] counts = new int[mainSentenceList.size()];
+            product = 1;
+            for (int i = 0; i < listOfListOfRelatedSynsets.size(); i++) {
+                if (listOfListOfRelatedSynsets.get(i) != null && listOfListOfRelatedSynsets.get(i).size() > 0) { // for WH clause etc
+                    counts[i] = Math.min((int) (countOfSynAndSim.get(i)*factor), listOfListOfRelatedSynsets.get(i).size());
+                    product *= counts[i];
+                } else {
+                    counts[i] = 1;
+                }
+            }
+            if (product > 0) {
+                allCombinations = Utilities.getAllCombinations(counts);
+            }
         }
 
-        System.out.println(question.getQuestionString());
-        int[] counts = new int[mainSentence.size()];
-        int product = 1;
-        for (int i = 0; i < listOfRelatedSynsets.size(); i++) {
-            if (listOfRelatedSynsets.get(i) != null && listOfRelatedSynsets.get(i).size() > 0) { //NPE for WH clause etc
-                counts[i] = listOfRelatedSynsets.get(i).size();
-                product *= counts[i];
-            } else {
-                counts[i] = 1;
-            }
-        }
-        int[][] allCombinations = Utilities.getAllCombinations(counts);
+        System.out.println(question.getQuestionString() + " " + product);
 
         for (int j = 0; j < product + 1; j++) { //Added +1 for words in the main sentence
             doc = new Document();
@@ -278,16 +315,16 @@ public class KnowledgeProcessor {
             String wordString;
             BotPOS pos;
 
-            for (int i = 0; i < mainSentence.size(); i++) {
-                if (j < product && listOfRelatedSynsets.get(i) != null) {
-                    synonymSynset = listOfRelatedSynsets.get(i).get(allCombinations[i][j]);
+            for (int i = 0; i < mainSentenceList.size(); i++) {
+                if (j < product && listOfListOfRelatedSynsets.get(i) != null) {
+                    synonymSynset = listOfListOfRelatedSynsets.get(i).get(allCombinations[i][j]);
                     linkType = synonymSynset.getLinkType();
                     wordString = synonymSynset.getWord();
                     pos = synonymSynset.getPos();
                 } else {
-                    wordString = mainSentence.get(i).getLemma();
-                    linkType = mainSentence.get(i).getLinkType();
-                    pos = mainSentence.get(i).getPos();
+                    wordString = mainSentenceList.get(i).getLemma();
+                    linkType = mainSentenceList.get(i).getLinkType();
+                    pos = mainSentenceList.get(i).getPos();
                 }
 
                 switch (linkType) {
@@ -324,8 +361,7 @@ public class KnowledgeProcessor {
                     namedEntities.append(" " + wordString);
                 }
             }
-            //System.out.println("Adding to Index. nouns: "+ nouns+" verbs: "+verbs + " namedEntity: "+namedEntities+" wc: "+whClause+" ads: "+ads+" mainWords: "+mainWords);
-
+            // System.out.println("Adding to Index. nouns: "+ nouns+" verbs: "+verbs + " namedEntity: "+namedEntities+" wc: "+whClause+" ads: "+ads+" mainWords: "+mainWords);
             if (cardinalNumber.length() > 0) {
                 doc.add(new TextField("cd", cardinalNumber.toString(), Field.Store.NO));
             }
@@ -383,26 +419,26 @@ public class KnowledgeProcessor {
         return top2Queries;
     }
 
-    private String formQuery(List<Word> words, boolean fuzzy) throws IOException, ParseException {
+    private String formQuery(List<BotWord> botWords, boolean fuzzy) throws IOException, ParseException {
         StringBuilder whClause = new StringBuilder();
         //StringBuilder entities = new StringBuilder();
         StringBuilder cardinalNumber = new StringBuilder();
         StringBuilder mainWords = new StringBuilder();
         StringBuilder ads = new StringBuilder();
 
-        for (Word word : words) {
-            if (EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(word.getLemma())) {
+        for (BotWord botWord : botWords) {
+            if (EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(botWord.getLemma())) {
                 continue;
             }
 
-            if (word.getPos() == BotPOS.CARDINAL_NUMBER) {
-                cardinalNumber.append(" ").append(word.getLemma()); //exact search for cardinal nos.
-            } else if (word.getPos() == BotPOS.WH_QUESTION) {
-                whClause.append(" ").append(word.getLemma());
-            } else if (word.getPos() == BotPOS.ADVERB || word.getPos() == BotPOS.ADJECTIVE) {
-                ads.append(" " + word.getLemma()+(fuzzy?"~":""));
+            if (botWord.getPos() == BotPOS.CARDINAL_NUMBER) {
+                cardinalNumber.append(" ").append(botWord.getLemma()); //exact search for cardinal nos.
+            } else if (botWord.getPos() == BotPOS.WH_QUESTION) {
+                whClause.append(" ").append(botWord.getLemma());
+            } else if (botWord.getPos() == BotPOS.ADVERB || botWord.getPos() == BotPOS.ADJECTIVE) {
+                ads.append(" " + botWord.getLemma()+(fuzzy?"~":""));
             } else {
-                mainWords.append(" " + word.getLemma()+(fuzzy?"~":""));
+                mainWords.append(" " + botWord.getLemma()+(fuzzy?"~":""));
             }
         }
         StringBuilder query = new StringBuilder();

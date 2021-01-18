@@ -1,11 +1,10 @@
 package org.arjunkashyap.learningbot.Entity;
 
-import edu.cmu.lti.jawjaw.pobj.Link;
 import net.sf.extjwnl.data.Synset;
 
 import java.util.Objects;
 
-public class SynonymSynset extends Synonym {
+public class SynonymSynset extends BotWord {
     private Synset synset;
     private int useCount;
 
@@ -43,6 +42,7 @@ public class SynonymSynset extends Synonym {
         return "SynonymSynset{" +
                 "synset=" + synset.getOffset() +
                 ", useCount=" + useCount +
+                ", linkType=" + linkType +
                 '}';
     }
 }
