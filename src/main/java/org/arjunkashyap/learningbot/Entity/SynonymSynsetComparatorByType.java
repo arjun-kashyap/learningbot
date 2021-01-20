@@ -14,6 +14,7 @@ public class SynonymSynsetComparatorByType implements Comparator<SynonymSynset> 
         mapper.put(Link.hype, 3);
         mapper.put(Link.hypo, 4);
     }
+    @Override
     public int compare(SynonymSynset first, SynonymSynset second) {
         return mapper.get(first.getLinkType()).compareTo(mapper.get(second.getLinkType()));
     }

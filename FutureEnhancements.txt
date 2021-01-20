@@ -2,3 +2,7 @@
 - Take care of other English grammar
 - Compound botWords like "face mask" -> Did he use face mask?
 - Handle very long questions. Give priority to certain words.
+- Autocorrect
+- Prevent someone abusing by incorrectly up-voting
+- Pick a better way to pick synonyms rather than just part of speech. Some resources to explore:
+https://stackoverflow.com/questions/4613773/anyone-know-of-some-good-word-sense-disambiguation-software

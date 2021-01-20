@@ -2,7 +2,6 @@ DROP TABLE IF EXISTS QUESTION;
 DROP TABLE IF EXISTS ANSWER;
 DROP TABLE IF EXISTS unanswered_question;
 DROP TABLE IF EXISTS QUESTION_ANSWER_RELATION;
-DROP TABLE IF EXISTS PART_OF_SPEECH_QUESTION;
 DROP TABLE IF EXISTS VARIABLES;
 DROP TABLE IF EXISTS INTERACTION;
 DROP SEQUENCE IF EXISTS QUESTION_SEQUENCE;
@@ -21,6 +20,7 @@ CREATE TABLE ANSWER (answer_id INT  PRIMARY KEY,
 
 CREATE TABLE QUESTION (question_id INT  PRIMARY KEY,
                     question VARCHAR(2000) NOT NULL,
+                    question_words VARCHAR(2000),
                     max_possible_score_main float,
                     max_possible_score_synsets float,
                     create_date  DATE NOT NULL);
@@ -31,14 +31,6 @@ CREATE TABLE QUESTION_ANSWER_RELATION (question_id INT,
                     manual BOOLEAN NOT NULL,
                     create_date DATE NOT NULL,
                     PRIMARY KEY(question_id, answer_id));
-
-CREATE TABLE PART_OF_SPEECH_QUESTION (pos_id INT,
-                    nouns VARCHAR(2000),
-                    verbs VARCHAR(2000),
-                    question_id INT NOT NULL,
-                    score INT NOT NULL,
-                    create_date DATE NOT NULL,
-                    PRIMARY KEY(pos_id));
 
 CREATE TABLE VARIABLES (variable_name VARCHAR(2000) NOT NULL,
                         variable_value VARCHAR(2000) NOT NULL,
@@ -59,6 +51,6 @@ problem_type VARCHAR(2000) NOT NULL,
 times_asked INT NOT NULL
 );
 
-INSERT INTO QUESTION (question_id, question, create_date) values (38,'What is the difference between COVID-19 and seasonal allergies?', CURRENT_TIMESTAMP());
-INSERT INTO ANSWER (answer_id, answer, create_date) values (38,'COVID-19 is a contagious respiratory illness caused by infection with a new coronavirus (called SARS-CoV-2, the virus that causes COVID-19). Seasonal allergies triggered by airborne pollen can lead to seasonal allergic rhinitis, which affects the nose and sinuses, and seasonal allergic conjunctivitis, which affects the eyes. COVID-19 and seasonal allergies share many symptoms, but there are some key differences between the two. For example, COVID-19 can cause fever, which is not a common symptom of seasonal allergies. The image below compares symptoms caused by allergies and COVID-19. Because some of the symptoms of COVID-19 and seasonal allergies are similar, it may be difficult to tell the difference between them, and you may need to get a test to confirm your diagnosis 508 version *Seasonal allergies do not usually cause shortness of breath or difficulty breathing, unless a person has a respiratory condition such as asthma that can be triggered by exposure to pollen. This is not a complete list of all possible symptoms of COVID-19 or seasonal allergies. Symptoms vary from person to person and range from mild to severe. You can have symptoms of both COVID-19 and seasonal allergies at the same time. If you think you have COVID-19, follow CDC’s guidance on ”What to do if you are sick.” If you have an emergency warning sign (including trouble breathing), seek emergency medical care immediately. Get more information on COVID-19 symptoms, or more information on seasonal allergy symptomsexternal icon.', CURRENT_TIMESTAMP());
-INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (38,38,true, CURRENT_TIMESTAMP());
+INSERT INTO QUESTION (question_id, question, create_date) values (28,'Can I take my dog to a dog park?', CURRENT_TIMESTAMP());
+INSERT INTO ANSWER (answer_id, answer, create_date) values (28,'Look for emergency warning signs* for COVID-19. If someone is showing any of these signs, seek emergency medical care immediately Trouble breathing Persistent pain or pressure in the chest New confusion Inability to wake or stay awake Bluish lips or face *This list is not all possible symptoms. Please call your medical provider for any other symptoms that are severe or concerning to you. Call 911 or call ahead to your local emergency facility: Notify the operator that you are seeking care for someone who has or may have COVID-19.', CURRENT_TIMESTAMP());
+INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (28,28,true, CURRENT_TIMESTAMP());
