@@ -7,6 +7,6 @@ import java.util.Comparator;
 public class SynsetComparatorByOffset implements Comparator<Synset> {
     @Override
     public int compare(Synset first, Synset second) {
-        return (int) (second.getOffset()-first.getOffset());
+        return Long.compare(second.getOffset(), first.getOffset());
     }
 }

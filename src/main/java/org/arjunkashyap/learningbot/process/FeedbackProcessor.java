@@ -76,20 +76,46 @@ public class FeedbackProcessor {
         } catch (JWNLException | IOException | ParseException e) {
             e.printStackTrace();
         }
-        //}
     }
 
     public void decrementVote(Match match, Question userQuestion) {
         Question question = match.getQuestion();
         Answer answer = match.getAnswer();
         System.out.println("Decrement QuestionID: " + question.getQuestionId() + " & AnswerID: " + answer.getAnswerId());
-        jtm.update("update question_answer_relation set votes = votes-1 where question_id = ? and answer_id = ?",
-                question.getQuestionId(), answer.getAnswerId());
+        int[] votes = new int[]{1};
+        jtm.query("SELECT votes FROM question_answer_relation WHERE question_id = ? and answer_id = ?", new Object[]{question.getQuestionId(), answer.getAnswerId()}, new RowMapper<int[]>() {
+                    @Override
+                    public int[] mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        votes[0] = rs.getInt("votes");
+                        return votes;
+                    }
+                }
+        );
+        System.out.println("Vote count:"+votes[0]);
+        if (votes[0] > 0) {
+            jtm.update("update question_answer_relation set votes = votes-1 where question_id = ? and answer_id = ?",
+                    question.getQuestionId(), answer.getAnswerId());
+        }
     }
 
-    public void addQuestionToReviewList(Question userQuestion) {
-        System.out.println("Problem Question: " + userQuestion.getQuestionString());
-        //TODO: jtm.update("update question_answer_relation set votes = votes-1 where question_id = ? and answer_id = ?",
-        //  question.getQuestionId(), answer.getAnswerId());
+    public void addQuestionToReviewList(Question userQuestion, String reviewType) {
+        System.out.println("Problem Question: " + userQuestion.getCleanedQuestionString());
+        int[] question_id = new int[]{0};
+        jtm.query("SELECT nvl(id,0) question_id FROM unanswered_question WHERE question_string = ?", new Object[]{userQuestion.getCleanedQuestionString()}, new RowMapper<int[]>() {
+                    @Override
+                    public int[] mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        question_id[0] = rs.getInt("question_id");
+                        return question_id;
+                    }
+                }
+        );
+        System.out.println("Question Id:"+question_id[0]);
+        if (question_id[0] == 0) {
+            jtm.update("insert into unanswered_question(question_string, problem_type, times_asked, create_date) values (?, ?, 1, CURRENT_TIMESTAMP())",
+                    userQuestion.getCleanedQuestionString(), reviewType);
+        }
+        else {
+            jtm.update("update unanswered_question set times_asked = times_asked+1 where id = ?", question_id[0]);
+        }
     }
 }

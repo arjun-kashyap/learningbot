@@ -3,8 +3,8 @@ package org.arjunkashyap.learningbot.Controller;
 import org.arjunkashyap.learningbot.Entity.*;
 import org.arjunkashyap.learningbot.common.Utilities;
 import org.arjunkashyap.learningbot.process.FeedbackProcessor;
+import org.arjunkashyap.learningbot.process.GeneralProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +16,7 @@ import java.util.*;
 public class FeedbackComponentController {
     @Autowired private Utilities<Map<String, Object>> utilities;
     @Autowired private FeedbackProcessor feedbackProcessor;
-    @Autowired private JdbcTemplate jtm;
+    @Autowired private GeneralProcessor generalProcessor;
 
     @PostMapping(
             value = "/getNextAnswer", consumes = "application/json", produces = "application/json")
@@ -65,13 +65,12 @@ public class FeedbackComponentController {
             debugInfo.put("CurrentMatch", lastAnswerIndex + 1);
             debugInfo.put("Matches", matches);
             answerResponse.setDebugInfo(debugInfo);
-            //TODO: reduce vote
+            feedbackProcessor.decrementVote(matches.get(lastAnswerIndex), inputQuestion);
         }
         long elapsedTime = System.currentTimeMillis() - startTime;
         answerResponse.setResponseTime(elapsedTime);
         //System.out.println(String.format("ResponseTime of [%s]: [%d]", AnsweringComponentController.class, elapsedTime));
-        //TODO: Log each interaction and the response in table
-        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'NEXT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        generalProcessor.logInteraction("NEXT_ANSWER", elapsedTime, lastAnswerIndex+2); // +2 because indices are one less
         return answerResponse;
     }
 
@@ -101,7 +100,7 @@ public class FeedbackComponentController {
         }
         botResponse.setContext(request.getContext());
         long elapsedTime = System.currentTimeMillis() - startTime;
-        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'CORRECT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        generalProcessor.logInteraction("CORRECT_ANSWER", elapsedTime, 1);
         botResponse.setResponseTime(elapsedTime);
         return botResponse;
     }
@@ -133,7 +132,7 @@ public class FeedbackComponentController {
         botResponse.setContext(request.getContext());
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'INCORRECT_ANSWER', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        generalProcessor.logInteraction("INCORRECT_ANSWER", elapsedTime, 1);
         botResponse.setResponseTime(elapsedTime);
         return botResponse;
     }
@@ -147,7 +146,7 @@ public class FeedbackComponentController {
         context = utilities.deserializeFromString(request.getContext());
         if (context != null && context.size()>0) {
             Question question = (Question) context.get("QUESTION");
-            feedbackProcessor.addQuestionToReviewList(question);
+            feedbackProcessor.addQuestionToReviewList(question, "DETECTION ERROR");
             Map<String, Object> message = new HashMap<>();
             message.put("message","Feedback processed");
             botResponse.setDebugInfo(message);
@@ -161,11 +160,8 @@ public class FeedbackComponentController {
         botResponse.setContext(request.getContext());
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        jtm.update("INSERT INTO INTERACTION (interaction_id, interaction_type, response_time_millis, create_date) values (INTERACTION_SEQUENCE.NEXTVAL, 'QUESTION_DETECTION_ERROR', ?, CURRENT_TIMESTAMP())", elapsedTime);
+        generalProcessor.logInteraction("QUESTION_DETECTION_ERROR", elapsedTime, 1);
         botResponse.setResponseTime(elapsedTime);
-        return botResponse;    }
-
-    //TODO: Method for marking incorrect answer. What if a question is marked with too many down-votes.
-    // We may be giving some other answer that is not appropriate
-
+        return botResponse;
+    }
 }

@@ -9,9 +9,9 @@ DROP SEQUENCE IF EXISTS ANSWER_SEQUENCE;
 DROP SEQUENCE IF EXISTS INTERACTION_SEQUENCE;
 
 
-CREATE SEQUENCE QUESTION_SEQUENCE START WITH 100 INCREMENT BY 1;
-CREATE SEQUENCE ANSWER_SEQUENCE START WITH 100 INCREMENT BY 1;
-CREATE SEQUENCE INTERACTION_SEQUENCE START WITH 100 INCREMENT BY 1;
+CREATE SEQUENCE QUESTION_SEQUENCE START WITH 200 INCREMENT BY 1;
+CREATE SEQUENCE ANSWER_SEQUENCE START WITH 200 INCREMENT BY 1;
+CREATE SEQUENCE INTERACTION_SEQUENCE START WITH 1 INCREMENT BY 1;
 
 
 CREATE TABLE ANSWER (answer_id INT  PRIMARY KEY,
@@ -41,16 +41,17 @@ CREATE TABLE VARIABLES (variable_name VARCHAR(2000) NOT NULL,
 CREATE TABLE INTERACTION (interaction_id INT,
                           interaction_type VARCHAR(2000) NOT NULL,
                           response_time_millis INT NOT NULL,
+                          attempt_count INT,
                           create_date  DATE NOT NULL,
                           PRIMARY KEY(interaction_id));
 
 CREATE TABLE unanswered_question (id INT AUTO_INCREMENT  PRIMARY KEY,
-raw_question VARCHAR(2000) NOT NULL,
-processed_question VARCHAR(2000) NOT NULL,
+question_string VARCHAR(2000) NOT NULL,
 problem_type VARCHAR(2000) NOT NULL,
-times_asked INT NOT NULL
+times_asked INT NOT NULL,
+create_date  DATE NOT NULL
 );
 
-INSERT INTO QUESTION (question_id, question, create_date) values (28,'Can I take my dog to a dog park?', CURRENT_TIMESTAMP());
-INSERT INTO ANSWER (answer_id, answer, create_date) values (28,'Look for emergency warning signs* for COVID-19. If someone is showing any of these signs, seek emergency medical care immediately Trouble breathing Persistent pain or pressure in the chest New confusion Inability to wake or stay awake Bluish lips or face *This list is not all possible symptoms. Please call your medical provider for any other symptoms that are severe or concerning to you. Call 911 or call ahead to your local emergency facility: Notify the operator that you are seeking care for someone who has or may have COVID-19.', CURRENT_TIMESTAMP());
-INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (28,28,true, CURRENT_TIMESTAMP());
+INSERT INTO QUESTION (question_id, question, create_date) values (1,'Should children wear masks??', CURRENT_TIMESTAMP());
+INSERT INTO ANSWER (answer_id, answer, create_date) values (1,'Test Answer', CURRENT_TIMESTAMP());
+INSERT INTO QUESTION_ANSWER_RELATION (question_id, answer_id, manual, create_date) values (1,1,true, CURRENT_TIMESTAMP());

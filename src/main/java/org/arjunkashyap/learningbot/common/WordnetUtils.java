@@ -42,7 +42,8 @@ public class WordnetUtils {
         //synonyms = wordnetUtils.getTopSynsets("big", BotPOS.ADJECTIVE, 10000
         //synonyms = wordnetUtils.getTopSynsets("phone", BotPOS.NOUN,1000000);
         //System.out.println(synonyms);
-        System.out.println(wordnetUtils.getSynsetsOfWordsInSameLevel(wordInWordNet(BotPOS.VERB, "have"), BotPOS.VERB));
+        //System.out.println(wordnetUtils.getSynsetsOfWordsInSameLevel(wordInWordNet(BotPOS.VERB, "have"), BotPOS.VERB));
+        System.out.println(getOneSynsetForTheWord("baby", BotPOS.NOUN, Link.sim));
     }
 
     public static IndexWord wordInWordNet(BotPOS pos, String word) throws JWNLException {
@@ -120,7 +121,7 @@ public class WordnetUtils {
         return synonymSynsets;
     }
 
-    public SynonymSynset getOneSynsetForTheWord(String word, BotPOS inputPos, Link linkType) {
+    public static SynonymSynset getOneSynsetForTheWord(String word, BotPOS inputPos, Link linkType) {
         IndexWord indexWord = null;
         try {
             indexWord = wordInWordNet(inputPos, word);
@@ -129,9 +130,9 @@ public class WordnetUtils {
         }
         SynonymSynset s = null;
         if (indexWord != null) {
-            List<Synset> synsets = indexWord.getSenses();
+            List<Synset> synsets = new ArrayList<>(indexWord.getSenses()); //Good learning! Adding to a new list as the original one is a TRANSIENT
             synsets.sort(new SynsetComparatorByOffset());
-            Synset synset = synsets.get(0); // Get the synset with the lowest offset. This will be indexed as well as searched
+            Synset synset = synsets.get(0); //Get the synset with the highest offset. This will be indexed as well as searched
             s = new SynonymSynset();
             s.setWord("" + synset.getOffset());
             s.setLemma("" + synset.getOffset());

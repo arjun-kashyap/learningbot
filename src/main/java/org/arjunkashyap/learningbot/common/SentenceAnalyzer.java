@@ -46,6 +46,7 @@ public class SentenceAnalyzer implements InitializingBean{
 
     public Question processQuestion(String questionString) {
         Annotation annotation = new Annotation(questionString);
+
         Question processedQuestion = process(pipeline, annotation);
         processedQuestion.setParser("SR");
         if (!processedQuestion.getIsQuestion()) {
@@ -55,6 +56,17 @@ public class SentenceAnalyzer implements InitializingBean{
             processedQuestion.setParser("PCFG");
         }
         processedQuestion.setQuestionString(questionString);
+
+        CoreDocument document = pipeline.processToCoreDocument(questionString);
+        List<CoreLabel> tokens = document.tokens();
+        StringBuilder cleanedQuestion = new StringBuilder();
+        if (tokens.size() > 0) {
+            for (CoreLabel tok : tokens) {
+                cleanedQuestion.append(" "+tok.word());
+            }
+        }
+        processedQuestion.setCleanedQuestionString(cleanedQuestion.toString().trim());
+
         return processedQuestion;
     }
 
@@ -64,14 +76,17 @@ public class SentenceAnalyzer implements InitializingBean{
         List<CoreMap> coreMapList = annotation.get(CoreAnnotations.SentencesAnnotation.class);
         if (coreMapList.size() >= 1) {
             Tree tree = coreMapList.get(0).get(TreeCoreAnnotations.TreeAnnotation.class);
+/*
             Set<Constituent> treeConstituents = tree.constituents(new LabeledScoredConstituentFactory());
+
             for (Constituent constituent : treeConstituents) {
                 if (constituent.label() != null &&
                         (constituent.label().toString().equals("VP") || constituent.label().toString().equals("NP"))) {
                 }
             }
+*/
             processedQuestion.setTree(tree.toString());
-            System.out.println(tree.toString());
+ //           System.out.println(tree.toString());
             if (processedQuestion.getTree().contains("SBARQ") || processedQuestion.getTree().contains("SQ")) {
                 processedQuestion.setIsQuestion(true);
             } else {

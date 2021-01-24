@@ -9,6 +9,7 @@ public class Question implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int questionId;
     private String questionString;
+    private String cleanedQuestionString;
     @JsonIgnore
     private float maxPossibleScoreForMainWords;
     @JsonIgnore
@@ -35,6 +36,14 @@ public class Question implements Serializable {
 
     public void setQuestionString(String questionString) {
         this.questionString = questionString;
+    }
+
+    public String getCleanedQuestionString() {
+        return cleanedQuestionString;
+    }
+
+    public void setCleanedQuestionString(String cleanedQuestionString) {
+        this.cleanedQuestionString = cleanedQuestionString;
     }
 
     public boolean getIsQuestion() {

@@ -17,6 +17,8 @@ import java.util.*;
 public class AnswerProcessor {
     @Autowired private JdbcTemplate jtm;
     @Autowired private KnowledgeProcessor knowledgeProcessor;
+    @Autowired private FeedbackProcessor feedbackProcessor;
+
     private final String SQL = "select q.question, a.answer_id, answer, votes, manual, max_possible_score_main, max_possible_score_synsets " +
             "from question q, answer a, question_answer_relation r " +
              "where q.question_id = r.question_id " +
@@ -57,19 +59,6 @@ public class AnswerProcessor {
                     });
                 }
             }
-            if (possibleMatches.size() == 0) {
-                Answer answer = new Answer();
-                answer.setAnswerId(-1);
-                answer.setAnswerString("Sorry, I don't have an answer for this question. This question has been recorded for analysis.");
-                Match match = new Match();
-                match.setAnswer(answer);
-                match.setSearcherScore(0.0f);
-                match.setSynonymScore(0.0f);
-                match.setVoteScore(0.0f);
-                match.setWeightedFinalScore(0.0f);
-                possibleMatches.add(match);
-                //TODO Add to database for analysis
-            }
         }
         else {
             possibleMatches = new ArrayList<>();
@@ -86,9 +75,24 @@ public class AnswerProcessor {
         }
         Collections.sort(possibleMatches, Comparator.comparingDouble(Match::getWeightedFinalScore).reversed());
         Set<Match> topMatches = new TreeSet<>();
-        for (Match match: possibleMatches) {//Putting in Set to remove duplicates
+        for (Match match: possibleMatches) {
             System.out.println(match);
+            if (match.getWeightedFinalScore() > 0.2) {//"No answer" if low confidence. TODO: property driven?
+                topMatches.add(match);
+            }
+        }
+        if (topMatches.size() == 0) {
+            Answer answer = new Answer();
+            answer.setAnswerId(-1);
+            answer.setAnswerString("Sorry, I don't have an answer for this question. This question has been recorded for analysis.");
+            Match match = new Match();
+            match.setAnswer(answer);
+            match.setSearcherScore(0.0f);
+            match.setSynonymScore(0.0f);
+            match.setVoteScore(0.0f);
+            match.setWeightedFinalScore(0.0f);
             topMatches.add(match);
+            feedbackProcessor.addQuestionToReviewList(inputQuestion, "NO ANSWER");
         }
         List<Match> matchList = new ArrayList<>();
         matchList.addAll(topMatches);
