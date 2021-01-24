@@ -27,7 +27,7 @@ CREATE TABLE QUESTION (question_id INT  PRIMARY KEY,
 
 CREATE TABLE QUESTION_ANSWER_RELATION (question_id INT,
                     answer_id INT,
-                    votes INT,
+                    votes float,
                     manual BOOLEAN NOT NULL,
                     create_date DATE NOT NULL,
                     PRIMARY KEY(question_id, answer_id));

@@ -196,22 +196,32 @@ public class KnowledgeProcessor {
         }
     }
 
+/*
+Steps:
+1. decompose into POS elements
+2. Get count of words (excluding ADj, ADV, Stop Words
+3. Get synonyms of each word and put in a list (list of list of words). Also, get the count of SYN and SIM for each word
+4. Get combinations based on #2 above and factor
+5. For each combination, add the doc to index
+6. Return the two queries (one with main words and one with syns)
+ */
     private List<String> addQuestionToIndex(IndexWriter indexWriter, Question question) throws IOException, JWNLException {
         Document doc;
         List<BotWord> mainSentenceList = new ArrayList<>();
         List<List<SynonymSynset>> listOfListOfRelatedSynsets = new ArrayList<>();
         int exactCount, synonymCount, hypernymCount, hyponymCount;
 
+        //Step #1
         List<BotWord> botWords = sentenceAnalyzer.getPosElements(question.getQuestionString());
         List<String> top2Queries = new ArrayList<>();
 
+        //Step #2
         int count = 0;
         for (BotWord botWord : botWords) {
             if (!(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET.contains(botWord.getLemma())) &&
                     (botWord.getPos() == BotPOS.NOUN ||
                             botWord.getPos() == BotPOS.VERB ||
-                            botWord.getPos() == BotPOS.ENTITY)) {//||
-                //word.getPos() == BotPOS.DERIVE_VERB)) { //Not getting synonyms for ADJ and ADV
+                            botWord.getPos() == BotPOS.ENTITY)) {//Not getting synonyms for ADJ and ADV
                 count++;
             }
         }
@@ -222,6 +232,7 @@ public class KnowledgeProcessor {
         int availableCombinations = 1;
         int nonNullSynsets = 0;
 
+        //Step #3
         for (BotWord botWord : botWords) {
             BotPOS pos = botWord.getPos();
             //System.out.println("DEBUGGING" + word.getLemma() + " "+pos);
@@ -259,6 +270,8 @@ public class KnowledgeProcessor {
             }
             listOfListOfRelatedSynsets.add(topSynsets);
         }
+
+        //Step #4
         int product;
         int[][] allCombinations = null;
 
@@ -285,6 +298,7 @@ public class KnowledgeProcessor {
 
         System.out.println(question.getQuestionString() + " product: " + product);
 
+        //Step #5
         for (int j = 0; j < product + 1; j++) { //Added +1 for words in the main sentence
             doc = new Document();
             StringBuilder cardinalNumber = new StringBuilder();
@@ -367,6 +381,8 @@ public class KnowledgeProcessor {
             )); //Storing the field for analyzing
             indexWriter.addDocument(doc);
         }
+
+        //Step #6
         return top2Queries;
     }
 
@@ -404,7 +420,7 @@ public class KnowledgeProcessor {
         return query.toString();
     }
 
-    private String formQueryFromWords(List<BotWord> botWords, boolean fuzzy) throws IOException, ParseException {
+    String formQueryFromWords(List<BotWord> botWords, boolean fuzzy) throws IOException, ParseException {
         StringBuilder whClause = new StringBuilder();
         StringBuilder cardinalNumber = new StringBuilder();
         StringBuilder mainWords = new StringBuilder();

@@ -40,7 +40,7 @@ public class AnswerProcessor {
                             if (rs.getBoolean("manual"))
                                 voteScore = 1;
                             else
-                                voteScore = Math.max(rs.getFloat("votes"), 10)/10; //TODO: Make this a property/database value
+                                voteScore = rs.getFloat("votes")/10; //TODO: Make this a property/database value
                             match.setVoteScore(voteScore);
                             if (match.getSynonymScore() == 1) {
                                 match.setSearcherScore(match.getSearcherScore()/match.getQuestion().getMaxPossibleScoreForMainWords());
@@ -52,7 +52,7 @@ public class AnswerProcessor {
                             answer.setAnswerId(rs.getInt("answer_id"));
                             answer.setAnswerString(rs.getString("answer"));
                             match.setAnswer(answer);
-                            match.setWeightedFinalScore(match.getSearcherScore()*match.getSynonymScore()*match.getVoteScore()); //TODO: Logic?
+                            match.setWeightedFinalScore(Math.min(match.getSearcherScore()*match.getSynonymScore()*match.getVoteScore(), 1)); //TODO: Logic?
                         }
                     });
                 }
