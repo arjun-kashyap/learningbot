@@ -7,8 +7,7 @@ Download following libraries:
 -   stanford-english-corenlp-models-current.jar (or stanford-english-corenlp-2018-02-27-models.jar and rename it)
 -   ws4j-1.0.1.jar
 
-curl 'https://nlp.stanford.edu/software/stanford-english-corenlp-2018-02-27-models.jar' --output stanford-english-c
-orenlp-models-current.jar
+curl 'https://nlp.stanford.edu/software/stanford-english-corenlp-2018-02-27-models.jar' --output stanford-english-corenlp-models-current.jar
 curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ws4j/ws4j-1.0.1.jar --output ws4j-1.0.1.jar
 
 * If we add KBP annotator at a later point, download the model from:
