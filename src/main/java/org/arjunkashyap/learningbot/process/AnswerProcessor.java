@@ -77,7 +77,7 @@ public class AnswerProcessor {
         Set<Match> topMatches = new TreeSet<>();
         for (Match match: possibleMatches) {
             System.out.println(match);
-            if (match.getWeightedFinalScore() > 0.2) {//"No answer" if low confidence. TODO: property driven?
+            if (match.getWeightedFinalScore() > 0.2||match.getAnswer().getAnswerId() == -1) {//"No answer" if low confidence. TODO: property driven?
                 topMatches.add(match);
             }
         }
