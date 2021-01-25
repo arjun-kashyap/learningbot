@@ -83,7 +83,7 @@ public class AnswerProcessor {
         }
         if (topMatches.size() == 0) {
             Answer answer = new Answer();
-            answer.setAnswerId(-1);
+            answer.setAnswerId(-2);
             answer.setAnswerString("Sorry, I don't have an answer for this question. This question has been recorded for analysis.");
             Match match = new Match();
             match.setAnswer(answer);
